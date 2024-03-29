@@ -1,0 +1,6 @@
+A dropdown for active windows
+Auto refresh on new window open
+Display resolution text field
+Make it Borderless - button
+Undo - button
+Save to Config - button
