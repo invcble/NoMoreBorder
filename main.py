@@ -3,7 +3,6 @@ import ctypes
 import time
 import win32gui
 from threading import Thread
-import random
 
 
 user32 = ctypes.windll.user32
@@ -25,14 +24,17 @@ def update_window_list():
         win32gui.EnumWindows(enum_window_proc, temp)
 
         if( windowList != temp ):
-            panel.after(20, refresh_window_list)
+            try:
+                panel.after(20, refresh_window_list)
+            except:
+                exit()
 
         windowList = temp
         time.sleep(2)
 
 def refresh_window_list():
     global window_list_dropdown, windowList
-    windowList_strings = [f"{title}" for hwnd, title in windowList]
+    windowList_strings = [f"{title[0:54]}" for hwnd, title in windowList] #Dirty truncate to resize drop-down UI
     window_list_dropdown.configure(values = windowList_strings)
    
 
@@ -51,7 +53,7 @@ type_field.pack()
 submit_button = ctk.CTkButton(panel, text="Submit", command = None)
 submit_button.pack(pady=20)
 
-window_list_dropdown = ctk.CTkOptionMenu(panel, dynamic_resizing = False, values = ["Select Application"])
+window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400)
 window_list_dropdown.pack(padx=20, pady=(20, 10))
 
 Thread(target = update_window_list).start()
