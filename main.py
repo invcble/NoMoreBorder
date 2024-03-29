@@ -13,8 +13,6 @@ screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
 windowList = []
 
-
-
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
         resultList.append((hwnd, win32gui.GetWindowText(hwnd)))
@@ -24,8 +22,7 @@ def update_window_list():
 
     while True:
         temp = []
-        # win32gui.EnumWindows(enum_window_proc, temp)
-        temp = [str(random.randint(100, 999)) for _ in range(3)]
+        win32gui.EnumWindows(enum_window_proc, temp)
 
         if( windowList != temp ):
             panel.after(20, refresh_window_list)
@@ -35,11 +32,8 @@ def update_window_list():
 
 def refresh_window_list():
     global window_list_dropdown, windowList
-    
-
-    window_list_dropdown.configure(values = windowList)
-
-    # panel.after(2000, refresh_window_list)
+    windowList_strings = [f"{title}" for hwnd, title in windowList]
+    window_list_dropdown.configure(values = windowList_strings)
    
 
 panel = ctk.CTk()
@@ -60,25 +54,8 @@ submit_button.pack(pady=20)
 window_list_dropdown = ctk.CTkOptionMenu(panel, dynamic_resizing = False, values = ["Select Application"])
 window_list_dropdown.pack(padx=20, pady=(20, 10))
 
-
-# panel.after(2000, refresh_window_list)
 Thread(target = update_window_list).start()
-
-
-#######
-#######
 
 panel.attributes('-topmost', True)
 panel.mainloop()
 
-
-# while True:
-#     windowList = []
-#     time.sleep(2)
-#     win32gui.EnumWindows(enum_window_proc, windowList)
-
-
-#     for hwnd, title in windowList:
-#         print(f"HWND: {hwnd}, Title: {title}")
-    
-#     print("####################################")
