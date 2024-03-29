@@ -14,6 +14,7 @@ screen_height = user32.GetSystemMetrics(1)
 panel = ctk.CTk()
 panel.geometry("400x400+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
 panel.resizable(False, False)
+panel.title('NoMoreBorder')
 
 
 
