@@ -12,7 +12,9 @@ user32.SetProcessDPIAware()
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
 windowList = []
-selected_app = ""
+selected_app = "0"
+temp_win_height = 1080
+temp_win_width = 1920
 
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
@@ -45,10 +47,9 @@ def change_appearance_mode_event(new_appearance_mode: str):
 def combo_answer(choice):
     global selected_app 
     selected_app = choice
-    print("You selected : ", selected_app)
 
 def make_borderless():
-    global selected_app, windowList
+    global selected_app, windowList, temp_win_height, temp_win_width
     
     hwnd = None
     for win_hwnd, win_title in windowList:
@@ -57,9 +58,12 @@ def make_borderless():
             break
     
     if hwnd is None:
-        print("Error.")
         return
     
+    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+    temp_win_height = bottom - top
+    temp_win_width = right - left
+
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION)
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
@@ -67,7 +71,7 @@ def make_borderless():
     win32gui.SetWindowPos(hwnd, None, 0, 0, screen_width, screen_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
 def restore_window():
-    global selected_app, windowList
+    global selected_app, windowList, temp_win_height, temp_win_width
     
     hwnd = None
     for win_hwnd, win_title in windowList:
@@ -76,13 +80,12 @@ def restore_window():
             break
     
     if hwnd is None:
-        print("Error.")
         return
     
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
     
-    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 200, 200, 1920, 1080, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
 
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
