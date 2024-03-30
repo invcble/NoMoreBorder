@@ -82,7 +82,7 @@ def restore_window():
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
     
-    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 300, 300, 1920, 1080, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 200, 200, 1920, 1080, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
 
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
@@ -100,11 +100,14 @@ label.pack(pady=20)
 window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400, command = combo_answer)
 window_list_dropdown.pack(padx=20, pady=(0, 10))
 
-submit_button = ctk.CTkButton(panel, text="Make it Borderless", command = make_borderless)
-submit_button.pack(pady=10)
+buttons_frame = ctk.CTkFrame(panel)
+buttons_frame.pack(pady=10)
 
-undo_button = ctk.CTkButton(panel, text="Undo LMAO!", command = restore_window)
-undo_button.pack(pady=10)
+submit_button = ctk.CTkButton(buttons_frame, text="Make it Borderless", command = make_borderless)
+submit_button.grid(row=0, column=0, padx=5)
+
+undo_button = ctk.CTkButton(buttons_frame, text="Undo Lmao!", command = restore_window)
+undo_button.grid(row=0, column=1, padx=5)
 
 toggle_mode = ctk.CTkLabel(panel, text="Appearance Mode:", anchor="w")
 toggle_mode.pack(padx=20, pady=(10, 0))

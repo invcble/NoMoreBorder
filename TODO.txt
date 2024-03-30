@@ -1,6 +1,8 @@
 A dropdown for active windows - done
 Auto refresh on new window open - done
 Display resolution text field - done
-Make it Borderless - button
-Undo - button
+Make it Borderless - button - done
+Undo - button - done
 Save to Config - button
+save original resolution
+add start with windows
