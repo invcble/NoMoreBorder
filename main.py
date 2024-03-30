@@ -3,6 +3,7 @@ import ctypes
 import time
 import win32gui
 import win32con
+import json
 from threading import Thread
 
 
@@ -41,8 +42,24 @@ def refresh_window_list():
     windowList_strings = [f"{title[0:54]}" for hwnd, title in windowList] #Dirty truncate to resize drop-down UI
     window_list_dropdown.configure(values = windowList_strings)
 
+def save_theme(theme):
+    try:
+        with open("theme_setting.json", "w") as f:
+            json.dump({"theme": theme}, f)
+    except:
+        pass
+
+def load_theme():
+    try:
+        with open("theme_setting.json", "r") as f:
+            theme = json.load(f).get("theme", "System")
+            return theme
+    except:
+        return "System"
+
 def change_appearance_mode_event(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
+    save_theme(new_appearance_mode)
 
 def combo_answer(choice):
     global selected_app 
@@ -87,9 +104,9 @@ def restore_window():
     
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-
-ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+saved_theme = load_theme()
+ctk.set_appearance_mode(saved_theme)
+ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 
 panel = ctk.CTk()
 panel.geometry("400x320+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
@@ -117,9 +134,10 @@ toggle_mode.pack(padx=20, pady=(10, 0))
 
 toggle_mode_options = ctk.CTkOptionMenu(panel, values=[ "System", "Light", "Dark" ], command = change_appearance_mode_event)
 toggle_mode_options.pack(padx=20, pady=(10, 0))
+toggle_mode_options.set(saved_theme)
 
 Thread(target = update_window_list).start()
 
-panel.attributes('-topmost', True)
+# panel.attributes('-topmost', True)
 panel.mainloop()
 
