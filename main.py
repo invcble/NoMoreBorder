@@ -42,24 +42,34 @@ def refresh_window_list():
     windowList_strings = [f"{title[0:54]}" for hwnd, title in windowList] #Dirty truncate to resize drop-down UI
     window_list_dropdown.configure(values = windowList_strings)
 
-def save_theme(theme):
+    
+def load_settings():
     try:
-        with open("theme_setting.json", "w") as f:
-            json.dump({"theme": theme}, f)
+        with open("settings.json", "r") as f:
+            return json.load(f)
+    except:
+        return {"theme": "System", "apps": []}
+
+def save_settings(settings):
+    try:
+        with open("settings.json", "w") as f:
+            json.dump(settings, f, indent=4)
     except:
         pass
 
-def load_theme():
-    try:
-        with open("theme_setting.json", "r") as f:
-            theme = json.load(f).get("theme", "System")
-            return theme
-    except:
-        return "System"
+def update_theme(new_theme):
+    settings = load_settings()
+    settings["theme"] = new_theme
+    save_settings(settings)
+
+def update_apps(new_apps):
+    settings = load_settings()
+    settings["apps"] = new_apps
+    save_settings(settings)
 
 def change_appearance_mode_event(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
-    save_theme(new_appearance_mode)
+    update_theme(new_appearance_mode)
 
 def combo_answer(choice):
     global selected_app 
@@ -104,8 +114,8 @@ def restore_window():
     
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-saved_theme = load_theme()
-ctk.set_appearance_mode(saved_theme)
+current_settings = load_settings()
+ctk.set_appearance_mode(current_settings["theme"])
 ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 
 panel = ctk.CTk()
@@ -120,7 +130,7 @@ label.pack(pady=20)
 window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400, command = combo_answer)
 window_list_dropdown.pack(padx=20, pady=(0, 10))
 
-buttons_frame = ctk.CTkFrame(panel)
+buttons_frame = ctk.CTkFrame(panel, fg_color = "transparent")
 buttons_frame.pack(pady=10)
 
 submit_button = ctk.CTkButton(buttons_frame, text="Make it Borderless", command = make_borderless)
@@ -134,7 +144,7 @@ toggle_mode.pack(padx=20, pady=(10, 0))
 
 toggle_mode_options = ctk.CTkOptionMenu(panel, values=[ "System", "Light", "Dark" ], command = change_appearance_mode_event)
 toggle_mode_options.pack(padx=20, pady=(10, 0))
-toggle_mode_options.set(saved_theme)
+toggle_mode_options.set(current_settings["theme"])
 
 Thread(target = update_window_list).start()
 
