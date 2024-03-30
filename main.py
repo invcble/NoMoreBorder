@@ -13,6 +13,7 @@ user32.SetProcessDPIAware()
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
 windowList = []
+saveList = []
 selected_app = "0"
 temp_win_height = 1080
 temp_win_width = 1920
@@ -39,7 +40,7 @@ def update_window_list():
 
 def refresh_window_list():
     global window_list_dropdown, windowList
-    windowList_strings = [f"{title[0:54]}" for hwnd, title in windowList] #Dirty truncate to resize drop-down UI
+    windowList_strings = [f"{title[0:50]}" for hwnd, title in windowList] #Dirty truncate to resize drop-down UI
     window_list_dropdown.configure(values = windowList_strings)
 
     
@@ -115,6 +116,7 @@ def restore_window():
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
 current_settings = load_settings()
+saveList = current_settings["apps"]
 ctk.set_appearance_mode(current_settings["theme"])
 ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 

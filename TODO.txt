@@ -4,5 +4,6 @@ Display resolution text field - done
 Make it Borderless - button - done
 Undo - button - done
 save original resolution - done
+Save to Config - button - done
+
 add start with windows
-Save to Config - button
