@@ -60,19 +60,36 @@ def make_borderless():
         print("Error.")
         return
     
-    if hwnd:
-        style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION)
-        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+    style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION)
+    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
-        win32gui.MoveWindow(hwnd, 0, 0, screen_width - 1, screen_height - 1, True)
-        win32gui.SetWindowPos(hwnd, None, 0, 0, screen_width, screen_height, win32con.SWP_NOMOVE | win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
-   
+    win32gui.MoveWindow(hwnd, 0, 0, screen_width, screen_height, True)
+    win32gui.SetWindowPos(hwnd, None, 0, 0, screen_width, screen_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+
+def restore_window():
+    global selected_app, windowList
+    
+    hwnd = None
+    for win_hwnd, win_title in windowList:
+        if win_title.startswith(selected_app):
+            hwnd = win_hwnd
+            break
+    
+    if hwnd is None:
+        print("Error.")
+        return
+    
+    style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX
+    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+    
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 300, 300, 1920, 1080, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+
 
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 panel = ctk.CTk()
-panel.geometry("400x400+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
+panel.geometry("400x320+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
 panel.resizable(False, False)
 panel.title('NoMoreBorder')
 
@@ -85,6 +102,9 @@ window_list_dropdown.pack(padx=20, pady=(0, 10))
 
 submit_button = ctk.CTkButton(panel, text="Make it Borderless", command = make_borderless)
 submit_button.pack(pady=10)
+
+undo_button = ctk.CTkButton(panel, text="Undo LMAO!", command = restore_window)
+undo_button.pack(pady=10)
 
 toggle_mode = ctk.CTkLabel(panel, text="Appearance Mode:", anchor="w")
 toggle_mode.pack(padx=20, pady=(10, 0))
