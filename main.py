@@ -23,11 +23,20 @@ def enum_window_proc(hwnd, resultList):
         resultList.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 def update_window_list():
-    global windowList
+    global windowList, saveList, selected_app
 
     while True:
         temp = []
         win32gui.EnumWindows(enum_window_proc, temp)
+
+        temp_titles = [title for hwnd, title in temp]
+        for save_item in saveList:
+            for temp_title in temp_titles:
+                if temp_title.startswith(save_item):
+                    Temp = selected_app
+                    selected_app = save_item
+                    make_borderless()
+                    selected_app = Temp
 
         if( windowList != temp ):
             try:
@@ -77,7 +86,7 @@ def combo_answer(choice):
     selected_app = choice
 
 def make_borderless():
-    global selected_app, windowList, temp_win_height, temp_win_width
+    global selected_app, windowList, saveList, temp_win_height, temp_win_width
     
     hwnd = None
     for win_hwnd, win_title in windowList:
@@ -98,6 +107,10 @@ def make_borderless():
     win32gui.MoveWindow(hwnd, 0, 0, screen_width, screen_height, True)
     win32gui.SetWindowPos(hwnd, None, 0, 0, screen_width, screen_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
+    if selected_app not in saveList:
+        saveList.append(selected_app)
+        update_apps(saveList)
+
 def restore_window():
     global selected_app, windowList, temp_win_height, temp_win_width
     
@@ -114,6 +127,10 @@ def restore_window():
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
     
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+    
+    if selected_app in saveList:
+        saveList.remove(selected_app)
+        update_apps(saveList)
 
 current_settings = load_settings()
 saveList = current_settings["apps"]
