@@ -97,9 +97,13 @@ def make_borderless():
     if hwnd is None:
         return
     
+    print("before mod: " + str(temp_win_height))
+    print("before mod: " + str(temp_win_width))
     left, top, right, bottom = win32gui.GetWindowRect(hwnd)
     temp_win_height = bottom - top
     temp_win_width = right - left
+    print("after mod: " + str(temp_win_height))
+    print("after mod: " + str(temp_win_width))
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION)
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
@@ -138,7 +142,7 @@ ctk.set_appearance_mode(current_settings["theme"])
 ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 
 panel = ctk.CTk()
-panel.geometry("400x320+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
+panel.geometry("400x270+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
 panel.resizable(False, False)
 panel.title('NoMoreBorder')
 
