@@ -2,6 +2,26 @@
 
 NoMoreBorder is a utility designed to enhance your multitasking experience by enabling any windowed application to run in a fullscreen borderless mode without changing the screen resolution. This software is perfect for users who desire a seamless and immersive experience across various applications, from gaming to productivity tools.
 
+## Screenshots
+
+### Application Interface
+
+Here's how NoMoreBorder looks in action, demonstrating its straightforward and user-friendly interface.
+
+![NoMoreBorder Interface](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/NoMoreBorder.png)
+
+### Before and After
+
+These screenshots demonstrate the effect of NoMoreBorder on a sample application, showing both the original windowed mode and the seamless fullscreen experience after applying NoMoreBorder.
+
+#### Before Applying NoMoreBorder
+
+![Before NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/From.png)
+
+#### After Applying NoMoreBorder
+
+![After NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/To.png)
+
 ## Features
 
 - **Borderless Fullscreen**: Make any windowed application run in fullscreen mode without the traditional window borders, providing an immersive experience without altering the screen resolution.
