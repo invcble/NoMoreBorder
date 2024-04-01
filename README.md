@@ -26,8 +26,14 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 
 - **Borderless Fullscreen**: Make any windowed application run in fullscreen mode without the traditional window borders, providing an immersive experience without altering the screen resolution.
 - **Reversible Action**: Easily revert any changes made to the window, restoring the original windowed mode with borders.
-- **Session Memory**: NoMoreBorder remembers which applications were set to borderless mode, automatically reapplying these settings in future sessions. This persistence is achieved through a configuration file, ensuring a seamless experience even after restarting the software or your computer.
+- **Session Memory**: NoMoreBorder remembers which applications were set to borderless mode, automatically reapplying these settings in future sessions. It's done through a configuration file, ensuring a seamless experience even after restarting the software or your computer.
 - **Dark Mode**: Includes a built-in dark mode, allowing for an on-the-fly theme switch to reduce eye strain during late-night sessions.
+
+## **Getting Started**
+
+**Just download the `NoMoreBorder.exe` from [releases](URL_TO_RELEASES), and run it as it is.**
+
+> **Note**: For the best experience, it's recommended to run NoMoreBorder with administrative privileges. This ensures that the application can properly interact with other software windows on your system.
 
 ## Getting Started
 
