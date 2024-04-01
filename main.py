@@ -35,7 +35,7 @@ def update_window_list():
                 if temp_title.startswith(save_item):
                     Temp = selected_app
                     selected_app = save_item
-                    make_borderless()
+                    make_borderless(check = 1)  #Check 1 to skip loading temp resolution 
                     selected_app = Temp
 
         if( windowList != temp ):
@@ -85,7 +85,7 @@ def combo_answer(choice):
     global selected_app 
     selected_app = choice
 
-def make_borderless():
+def make_borderless(check = None):
     global selected_app, windowList, saveList, temp_win_height, temp_win_width
     
     hwnd = None
@@ -96,16 +96,15 @@ def make_borderless():
     
     if hwnd is None:
         return
-    
-    print("before mod: " + str(temp_win_height))
-    print("before mod: " + str(temp_win_width))
-    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-    temp_win_height = bottom - top
-    temp_win_width = right - left
-    print("after mod: " + str(temp_win_height))
-    print("after mod: " + str(temp_win_width))
+
+    if check == None:
+        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+        temp_win_height = bottom - top
+        temp_win_width = right - left
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION)
+
+    style 
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
     win32gui.MoveWindow(hwnd, 0, 0, screen_width, screen_height, True)
