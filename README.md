@@ -2,20 +2,42 @@
 
 NoMoreBorder is a utility designed to enhance your multitasking experience by enabling any windowed application to run in a fullscreen borderless mode without changing the screen resolution. This software is perfect for users who desire a seamless and immersive experience across various applications, from gaming to productivity tools.
 
+## Screenshots
+
+### Application Interface
+
+Here's how NoMoreBorder looks in action, demonstrating its straightforward and user-friendly interface.
+
+![NoMoreBorder Interface](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/NoMoreBorder.png)
+
+### Before and After
+
+These screenshots demonstrate the effect of NoMoreBorder on a sample application, showing both the original windowed mode and the seamless fullscreen experience after applying NoMoreBorder.
+
+#### Before Applying NoMoreBorder
+
+![Before NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/From.png)
+
+#### After Applying NoMoreBorder
+
+![After NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/To.png)
+
 ## Features
 
 - **Borderless Fullscreen**: Make any windowed application run in fullscreen mode without the traditional window borders, providing an immersive experience without altering the screen resolution.
 - **Reversible Action**: Easily revert any changes made to the window, restoring the original windowed mode with borders.
-- **Session Memory**: NoMoreBorder remembers which applications were set to borderless mode, automatically reapplying these settings in future sessions. This persistence is achieved through a configuration file, ensuring a seamless experience even after restarting the software or your computer.
+- **Session Memory**: NoMoreBorder remembers which applications were set to borderless mode, automatically reapplying these settings in future sessions. It's done through a configuration file, ensuring a seamless experience even after restarting the software or your computer.
 - **Dark Mode**: Includes a built-in dark mode, allowing for an on-the-fly theme switch to reduce eye strain during late-night sessions.
 
-## Getting Started
+## **Getting Started**
 
-Just download the NoMoreBorder.exe from releases, run it as it is.
+**Just download the `NoMoreBorder.exe` from [releases](https://github.com/invcble/NoMoreBorder/releases), and run it as it is.**
+
+> **Note**: For the best experience, it's recommended to run NoMoreBorder with administrative privileges. This ensures that the application can properly interact with other software windows on your system.
 
 ### Compiling your own
 
-You can compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, and `pyinstaller`. These can be installed using pip:
+You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, and `pyinstaller`. These can be installed using pip:
 
 ```bash
 pip install customtkinter pywin32 pyinstaller
@@ -28,8 +50,13 @@ To run NoMoreBorder, simply execute the Python script from your terminal or comm
 ```bash
 python main.py
 ```
+To compile, simply put this command in your terminal or command prompt:
 
-The application interface will appear, allowing you to select which windowed applications to make borderless or revert to their original state.
+```bash
+pyinstaller --onefile --noconsole main.py
+```
+
+You will find the exe in dist folder in parent directory.
 
 ## How to Use
 
