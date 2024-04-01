@@ -102,7 +102,7 @@ def make_borderless(check = None):
         temp_win_height = bottom - top
         temp_win_width = right - left
 
-    style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION)
+    style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
 
     style 
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
