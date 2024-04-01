@@ -8,7 +8,7 @@ NoMoreBorder is a utility designed to enhance your multitasking experience by en
 
 Here's how NoMoreBorder looks in action, demonstrating its straightforward and user-friendly interface.
 
-![NoMoreBorder Interface](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/NoMoreBorder.png)
+![NoMoreBorder Interface](https://github.com/invcble/NoMoreBorder/blob/5e8ab8f751b4fd328d6e0698853f603cf4200e0a/pictures/NoMoreBorder.png)
 
 ### Before and After
 
@@ -16,11 +16,11 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 
 #### Before Applying NoMoreBorder
 
-![Before NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/From.png)
+![Before NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/5e8ab8f751b4fd328d6e0698853f603cf4200e0a/pictures/From.png)
 
 #### After Applying NoMoreBorder
 
-![After NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/d990bf0b75254ed770062a5642e4c034e57d59d4/pic/To.png)
+![After NoMoreBorder](https://github.com/invcble/NoMoreBorder/blob/5e8ab8f751b4fd328d6e0698853f603cf4200e0a/pictures/To.png)
 
 ## Features
 
