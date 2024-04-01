@@ -35,7 +35,7 @@ Just download the NoMoreBorder.exe from releases, run it as it is.
 
 ### Compiling your own
 
-You can compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, and `pyinstaller`. These can be installed using pip:
+You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, and `pyinstaller`. These can be installed using pip:
 
 ```bash
 pip install customtkinter pywin32 pyinstaller
@@ -48,8 +48,13 @@ To run NoMoreBorder, simply execute the Python script from your terminal or comm
 ```bash
 python main.py
 ```
+To compile, simply put this command in your terminal or command prompt:
 
-The application interface will appear, allowing you to select which windowed applications to make borderless or revert to their original state.
+```bash
+pyinstaller --onefile --noconsole main.py
+```
+
+You will find the exe in dist folder in parent directory.
 
 ## How to Use
 
