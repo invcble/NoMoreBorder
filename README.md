@@ -31,13 +31,9 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 
 ## **Getting Started**
 
-**Just download the `NoMoreBorder.exe` from [releases](URL_TO_RELEASES), and run it as it is.**
+**Just download the `NoMoreBorder.exe` from [releases](https://github.com/invcble/NoMoreBorder/releases), and run it as it is.**
 
 > **Note**: For the best experience, it's recommended to run NoMoreBorder with administrative privileges. This ensures that the application can properly interact with other software windows on your system.
-
-## Getting Started
-
-Just download the NoMoreBorder.exe from releases, run it as it is.
 
 ### Compiling your own
 
