@@ -18,6 +18,28 @@ selected_app = "0"
 temp_win_height = 1080
 temp_win_width = 1920
 
+resolition_options = {
+    "Use Display Resolution": (screen_width, screen_height),
+    "3840x2160": (3840, 2160),
+    "3440x1440": (3440, 1440),
+    "2560x1600": (2560, 1600),
+    "2560x1440": (2560, 1440),
+    "2560x1600": (2560, 1600),
+    "2560x1080": (2560, 1080),
+    "1920x1200": (1920, 1200),
+    "1920x1080": (1920, 1080),
+    "1680x1050": (1680, 1050),
+    "1600x900": (1600, 900),
+    "1440x900": (1440, 900),
+    "1366x768": (1366, 768),
+    "1280x720": (1280, 720),
+    "1280x1024": (1280, 1024),
+    "1024x768": (1024, 768),
+    "800x600": (800, 600),
+    "640x480": (640, 480),
+}
+selected_resolution = resolition_options["Use Display Resolution"]
+
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
         resultList.append((hwnd, win32gui.GetWindowText(hwnd)))
@@ -85,6 +107,10 @@ def combo_answer(choice):
     global selected_app 
     selected_app = choice
 
+def combo_answer_resolution(choice):
+    global selected_resolution 
+    selected_resolution = resolition_options[choice]
+
 def make_borderless(check = None):
     global selected_app, windowList, saveList, temp_win_height, temp_win_width
     
@@ -107,8 +133,12 @@ def make_borderless(check = None):
     style 
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
-    win32gui.MoveWindow(hwnd, 0, 0, screen_width, screen_height, True)
-    win32gui.SetWindowPos(hwnd, None, 0, 0, screen_width, screen_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+    # Center on screen
+    location_x = screen_width//2 - (selected_resolution[0]//2)
+    location_y = screen_height//2 - (selected_resolution[1]//2)
+
+    win32gui.MoveWindow(hwnd, location_x, location_y, selected_resolution[0], selected_resolution[1], True)
+    win32gui.SetWindowPos(hwnd, None, location_x, location_y, selected_resolution[0], selected_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
     if selected_app not in saveList:
         saveList.append(selected_app)
@@ -141,7 +171,7 @@ ctk.set_appearance_mode(current_settings["theme"])
 ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 
 panel = ctk.CTk()
-panel.geometry("400x270+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
+panel.geometry("400x300+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
 panel.resizable(False, False)
 panel.title('NoMoreBorder')
 
@@ -151,6 +181,9 @@ label.pack(pady=20)
 
 window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400, command = combo_answer)
 window_list_dropdown.pack(padx=20, pady=(0, 10))
+
+resolution_dropdown = ctk.CTkComboBox(panel, values = list(resolition_options.keys()), width = 400, command = combo_answer_resolution)
+resolution_dropdown.pack(padx=20, pady=(0, 10))
 
 buttons_frame = ctk.CTkFrame(panel, fg_color = "transparent")
 buttons_frame.pack(pady=10)
