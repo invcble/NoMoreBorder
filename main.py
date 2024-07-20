@@ -13,12 +13,11 @@ user32.SetProcessDPIAware()
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
 windowList = []
-saveList = []
+saveList = {}
 selected_app = "0"
 temp_win_height = 1080
 temp_win_width = 1920
-
-resolition_options = {
+resolution_options = {
     "Use Display Resolution": (screen_width, screen_height),
     "3840x2160": (3840, 2160),
     "3440x1440": (3440, 1440),
@@ -38,7 +37,7 @@ resolition_options = {
     "800x600": (800, 600),
     "640x480": (640, 480),
 }
-selected_resolution = resolition_options["Use Display Resolution"]
+selected_resolution = resolution_options["Use Display Resolution"]
 
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
@@ -79,8 +78,9 @@ def load_settings():
     try:
         with open("settings.json", "r") as f:
             return json.load(f)
+    # TODO: Catch json existing but with wrong format? [] instead of {}
     except:
-        return {"theme": "System", "apps": []}
+        return {"theme": "System", "apps": {}}
 
 def save_settings(settings):
     try:
@@ -109,7 +109,7 @@ def combo_answer(choice):
 
 def combo_answer_resolution(choice):
     global selected_resolution 
-    selected_resolution = resolition_options[choice]
+    selected_resolution = resolution_options[choice]
 
 def make_borderless(check = None):
     global selected_app, windowList, saveList, temp_win_height, temp_win_width
@@ -133,16 +133,20 @@ def make_borderless(check = None):
     style 
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
+    # Get resolution from saveList if it's saved
+    target_resolution = saveList[selected_app] if selected_app in saveList else selected_resolution
+
     # Center on screen
-    location_x = screen_width//2 - (selected_resolution[0]//2)
-    location_y = screen_height//2 - (selected_resolution[1]//2)
+    location_x = screen_width//2 - (target_resolution[0]//2)
+    location_y = screen_height//2 - (target_resolution[1]//2)
 
-    win32gui.MoveWindow(hwnd, location_x, location_y, selected_resolution[0], selected_resolution[1], True)
-    win32gui.SetWindowPos(hwnd, None, location_x, location_y, selected_resolution[0], selected_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+    # Move window
+    win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
+    win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-    if selected_app not in saveList:
-        saveList.append(selected_app)
-        update_apps(saveList)
+    # Always update saveList in case the selected resolution has changed
+    saveList[selected_app] = target_resolution
+    update_apps(saveList)
 
 def restore_window():
     global selected_app, windowList, temp_win_height, temp_win_width
@@ -162,7 +166,7 @@ def restore_window():
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
     
     if selected_app in saveList:
-        saveList.remove(selected_app)
+        saveList.pop(selected_app)
         update_apps(saveList)
 
 current_settings = load_settings()
@@ -182,7 +186,7 @@ label.pack(pady=20)
 window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400, command = combo_answer)
 window_list_dropdown.pack(padx=20, pady=(0, 10))
 
-resolution_dropdown = ctk.CTkComboBox(panel, values = list(resolition_options.keys()), width = 400, command = combo_answer_resolution)
+resolution_dropdown = ctk.CTkComboBox(panel, values = list(resolution_options.keys()), width = 400, command = combo_answer_resolution)
 resolution_dropdown.pack(padx=20, pady=(0, 10))
 
 buttons_frame = ctk.CTkFrame(panel, fg_color = "transparent")
