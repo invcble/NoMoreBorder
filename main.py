@@ -77,8 +77,12 @@ def refresh_window_list():
 def load_settings():
     try:
         with open("settings.json", "r") as f:
-            return json.load(f)
-    # TODO: Catch json existing but with wrong format? [] instead of {}
+            settings = json.load(f)
+            #  Upgrade to new settings format if "apps" is saved as a list
+            if isinstance(settings["apps"], list):
+                settings["apps"] = {app:(screen_width, screen_height) for app in settings["apps"]}
+                save_settings(settings)
+            return settings
     except:
         return {"theme": "System", "apps": {}}
 
