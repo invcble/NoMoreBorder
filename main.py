@@ -67,20 +67,8 @@ def update_window_list():
         for save_item in saveList:
             for temp_title in temp_titles:
                 if temp_title.startswith(save_item):
-                    # This can be done so much better. Update make_borderless() instead
-                    temp_app = selected_app
-                    temp_resolution = selected_resolution
-                    temp_monitor = selected_monitor
-
-                    selected_app = save_item
-                    selected_resolution = saveList[save_item]["resolution"]
-                    selected_monitor = saveList[save_item]["monitor"]
-
-                    make_borderless(check = 1)  #Check 1 to skip loading temp resolution
-
-                    selected_app = temp_app
-                    selected_resolution = temp_resolution
-                    selected_monitor = temp_monitor
+                    # Use saved settings if they exist
+                    make_borderless(save_item, saveList[save_item]["resolution"], saveList[save_item]["monitor"]) 
 
         if( windowList != temp ):
             try:
@@ -146,43 +134,48 @@ def combo_answer_display(choice):
     selected_monitor = choice
     label.configure(text="Display Resolution is " + str(monitors[choice].width) + 'x' + str(monitors[choice].height))
 
-def make_borderless(check = None):
+def make_borderless(app_name = None, resolution_string = None, monitor_name = None):
     global selected_app, windowList, saveList, temp_win_height, temp_win_width
+    
+    app_name = app_name or selected_app
+    resolution_string = resolution_string or selected_resolution
+    monitor_name = monitor_name or selected_monitor
     
     hwnd = None
     for win_hwnd, win_title in windowList:
-        if win_title.startswith(selected_app):
+        if win_title.startswith(app_name):
             hwnd = win_hwnd
             break
     
     if hwnd is None:
         return
 
-    if check == None:
-        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-        temp_win_height = bottom - top
-        temp_win_width = right - left
+    # I cannot figure out what this is useful for, so I removed it for now. Feel free to reverse this if I missed something.
+    # if check == None:
+    #     left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+    #     temp_win_height = bottom - top
+    #     temp_win_width = right - left
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
 
     style 
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
-    if(selected_resolution == "Use Display Resolution"):
-        target_resolution = (monitors[selected_monitor].width, monitors[selected_monitor].height)
+    if(resolution_string == "Use Display Resolution"):
+        target_resolution = (monitors[monitor_name].width, monitors[monitor_name].height)
     else:
-        target_resolution = resolution_options[selected_resolution]
+        target_resolution = resolution_options[resolution_string]
 
     # Center on screen
-    location_x = monitors[selected_monitor].x + monitors[selected_monitor].width//2 - (target_resolution[0]//2)
-    location_y = monitors[selected_monitor].y + monitors[selected_monitor].height//2 - (target_resolution[1]//2)
+    location_x = monitors[monitor_name].x + monitors[monitor_name].width//2 - (target_resolution[0]//2)
+    location_y = monitors[monitor_name].y + monitors[monitor_name].height//2 - (target_resolution[1]//2)
 
     # Move window
     win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
     win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
     # Always update saveList in case the selected resolution or monitor has changed
-    saveList[selected_app] = {"monitor": selected_monitor, "resolution": selected_resolution}
+    saveList[app_name] = {"monitor": monitor_name, "resolution": resolution_string}
     update_apps(saveList)
 
 def restore_window():
