@@ -5,7 +5,7 @@ import win32gui
 import win32con
 import json
 from threading import Thread
-
+from screeninfo import get_monitors
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -37,7 +37,19 @@ resolution_options = {
     "800x600": (800, 600),
     "640x480": (640, 480),
 }
-selected_resolution = resolution_options["Use Display Resolution"]
+selected_resolution = "Use Display Resolution"
+monitors = {}
+selected_monitor = None
+
+# Get monitor info from screeninfo
+for index, m in enumerate(get_monitors()):
+    # I'm not using m.name here because mine were really weird, like m.name='\\\\.\\DISPLAY17',
+    # but there is probably a better way to do this
+    name = "Display " + str(index + 1)
+    if(m.is_primary):
+        name += " (Primary)"
+        selected_monitor = name
+    monitors[name] = m
 
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
@@ -113,7 +125,12 @@ def combo_answer(choice):
 
 def combo_answer_resolution(choice):
     global selected_resolution 
-    selected_resolution = resolution_options[choice]
+    selected_resolution = choice
+
+def combo_answer_display(choice):
+    global selected_monitor
+    selected_monitor = choice
+    label.configure(text="Display Resolution is " + str(monitors[choice].width) + 'x' + str(monitors[choice].height))
 
 def make_borderless(check = None):
     global selected_app, windowList, saveList, temp_win_height, temp_win_width
@@ -138,7 +155,7 @@ def make_borderless(check = None):
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
     # Get resolution from saveList if it's saved
-    target_resolution = saveList[selected_app] if selected_app in saveList else selected_resolution
+    target_resolution = saveList[selected_app] if selected_app in saveList else resolution_options[selected_resolution]
 
     # Center on screen
     location_x = screen_width//2 - (target_resolution[0]//2)
@@ -190,8 +207,15 @@ label.pack(pady=20)
 window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400, command = combo_answer)
 window_list_dropdown.pack(padx=20, pady=(0, 10))
 
-resolution_dropdown = ctk.CTkComboBox(panel, values = list(resolution_options.keys()), width = 400, command = combo_answer_resolution)
-resolution_dropdown.pack(padx=20, pady=(0, 10))
+monitor_frame = ctk.CTkFrame(panel, fg_color = "transparent")
+monitor_frame.pack(pady=10)
+
+resolution_dropdown = ctk.CTkComboBox(monitor_frame, values = list(resolution_options.keys()), width = 175, command = combo_answer_resolution)
+resolution_dropdown.grid(row=0, column=0, padx=(20, 5), pady=(0, 10))
+
+monitor_dropdown = ctk.CTkComboBox(monitor_frame, values = list(monitors.keys()), width = 175, command = combo_answer_display)
+monitor_dropdown.set(selected_monitor)
+monitor_dropdown.grid(row=0, column=1, padx=(5, 20), pady=(0, 10))
 
 buttons_frame = ctk.CTkFrame(panel, fg_color = "transparent")
 buttons_frame.pack(pady=10)
