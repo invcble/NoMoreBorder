@@ -24,7 +24,7 @@ selected_monitor = None
 for index, m in enumerate(get_monitors()):
     # I'm not using m.name here because mine were really weird, like m.name='\\\\.\\DISPLAY17',
     # but there is probably a better way to do this
-    name = "Display " + str(index + 1)
+    name = f"Display {str(index + 1)}" 
     if(m.is_primary):
         name += " (Primary)"
         selected_monitor = name
@@ -219,12 +219,12 @@ window_list_dropdown.pack(padx=20, pady=(0, 10))
 monitor_frame = ctk.CTkFrame(panel, fg_color = "transparent")
 monitor_frame.pack(pady=10)
 
-resolution_dropdown = ctk.CTkComboBox(monitor_frame, values = list(resolution_options.keys()), width = 175, command = combo_answer_resolution)
-resolution_dropdown.grid(row=0, column=0, padx=(20, 5), pady=(0, 10))
-
 monitor_dropdown = ctk.CTkComboBox(monitor_frame, values = list(monitors.keys()), width = 175, command = combo_answer_display)
-monitor_dropdown.set(selected_monitor)
-monitor_dropdown.grid(row=0, column=1, padx=(5, 20), pady=(0, 10))
+monitor_dropdown.set(selected_monitor) # Main display isn't always Display 1, so set whatever the system default is
+monitor_dropdown.grid(row=0, column=0, padx=(20, 5), pady=(0, 10))
+
+resolution_dropdown = ctk.CTkComboBox(monitor_frame, values = list(resolution_options.keys()), width = 175, command = combo_answer_resolution)
+resolution_dropdown.grid(row=0, column=1, padx=(5, 20), pady=(0, 10))
 
 buttons_frame = ctk.CTkFrame(panel, fg_color = "transparent")
 buttons_frame.pack(pady=10)
