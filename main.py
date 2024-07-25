@@ -17,8 +17,21 @@ saveList = {}
 selected_app = "0"
 temp_win_height = 1080
 temp_win_width = 1920
+monitors = {}
+selected_monitor = None
+
+# Get monitor info from screeninfo
+for index, m in enumerate(get_monitors()):
+    # I'm not using m.name here because mine were really weird, like m.name='\\\\.\\DISPLAY17',
+    # but there is probably a better way to do this
+    name = "Display " + str(index + 1)
+    if(m.is_primary):
+        name += " (Primary)"
+        selected_monitor = name
+    monitors[name] = m
+
 resolution_options = {
-    "Use Display Resolution": (screen_width, screen_height),
+    "Use Display Resolution": None,
     "3840x2160": (3840, 2160),
     "3440x1440": (3440, 1440),
     "2560x1600": (2560, 1600),
@@ -38,25 +51,13 @@ resolution_options = {
     "640x480": (640, 480),
 }
 selected_resolution = "Use Display Resolution"
-monitors = {}
-selected_monitor = None
-
-# Get monitor info from screeninfo
-for index, m in enumerate(get_monitors()):
-    # I'm not using m.name here because mine were really weird, like m.name='\\\\.\\DISPLAY17',
-    # but there is probably a better way to do this
-    name = "Display " + str(index + 1)
-    if(m.is_primary):
-        name += " (Primary)"
-        selected_monitor = name
-    monitors[name] = m
 
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
         resultList.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 def update_window_list():
-    global windowList, saveList, selected_app
+    global windowList, saveList, selected_app, selected_resolution, selected_monitor
 
     while True:
         temp = []
@@ -66,10 +67,20 @@ def update_window_list():
         for save_item in saveList:
             for temp_title in temp_titles:
                 if temp_title.startswith(save_item):
-                    Temp = selected_app
+                    # This can be done so much better. Update make_borderless() instead
+                    temp_app = selected_app
+                    temp_resolution = selected_resolution
+                    temp_monitor = selected_monitor
+
                     selected_app = save_item
-                    make_borderless(check = 1)  #Check 1 to skip loading temp resolution 
-                    selected_app = Temp
+                    selected_resolution = saveList[save_item]["resolution"]
+                    selected_monitor = saveList[save_item]["monitor"]
+
+                    make_borderless(check = 1)  #Check 1 to skip loading temp resolution
+
+                    selected_app = temp_app
+                    selected_resolution = temp_resolution
+                    selected_monitor = temp_monitor
 
         if( windowList != temp ):
             try:
@@ -92,7 +103,10 @@ def load_settings():
             settings = json.load(f)
             #  Upgrade to new settings format if "apps" is saved as a list
             if isinstance(settings["apps"], list):
-                settings["apps"] = {app:(screen_width, screen_height) for app in settings["apps"]}
+                settings["apps"] = {app:{
+                    "monitor": "Display 1 (Primary)",
+                    "resolution": "Use Display Resolution"
+                    } for app in settings["apps"]}
                 save_settings(settings)
             return settings
     except:
@@ -154,19 +168,21 @@ def make_borderless(check = None):
     style 
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
-    # Get resolution from saveList if it's saved
-    target_resolution = saveList[selected_app] if selected_app in saveList else resolution_options[selected_resolution]
+    if(selected_resolution == "Use Display Resolution"):
+        target_resolution = (monitors[selected_monitor].width, monitors[selected_monitor].height)
+    else:
+        target_resolution = resolution_options[selected_resolution]
 
     # Center on screen
-    location_x = screen_width//2 - (target_resolution[0]//2)
-    location_y = screen_height//2 - (target_resolution[1]//2)
+    location_x = monitors[selected_monitor].x + monitors[selected_monitor].width//2 - (target_resolution[0]//2)
+    location_y = monitors[selected_monitor].y + monitors[selected_monitor].height//2 - (target_resolution[1]//2)
 
     # Move window
     win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
     win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-    # Always update saveList in case the selected resolution has changed
-    saveList[selected_app] = target_resolution
+    # Always update saveList in case the selected resolution or monitor has changed
+    saveList[selected_app] = {"monitor": selected_monitor, "resolution": selected_resolution}
     update_apps(saveList)
 
 def restore_window():
@@ -201,7 +217,7 @@ panel.resizable(False, False)
 panel.title('NoMoreBorder')
 
 
-label = ctk.CTkLabel(panel, text="Display Resolution is " + str(screen_width) + 'x' + str(screen_height), font = ("Helvetica", 20))
+label = ctk.CTkLabel(panel, text="Display Resolution is " + str(monitors[selected_monitor].width) + 'x' + str(monitors[selected_monitor].height), font = ("Helvetica", 20))
 label.pack(pady=20)
 
 window_list_dropdown = ctk.CTkComboBox(panel, values = ["Select Application"], width = 400, command = combo_answer)
