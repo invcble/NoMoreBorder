@@ -8,7 +8,7 @@ from threading import Thread
 from screeninfo import get_monitors
 
 user32 = ctypes.windll.user32
-user32.SetProcessDPIAware()
+# user32.SetProcessDPIAware()
 
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
@@ -68,7 +68,7 @@ def update_window_list():
             for temp_title in temp_titles:
                 if temp_title.startswith(save_item):
                     # Use saved settings if they exist
-                    make_borderless(save_item, saveList[save_item]["resolution"], saveList[save_item]["monitor"]) 
+                    make_borderless(save_item, saveList[save_item]["resolution"], saveList[save_item]["monitor"], check=1) 
 
         if( windowList != temp ):
             try:
@@ -134,7 +134,7 @@ def combo_answer_display(choice):
     selected_monitor = choice
     label.configure(text="Display Resolution is " + str(monitors[choice].width) + 'x' + str(monitors[choice].height))
 
-def make_borderless(app_name = None, resolution_string = None, monitor_name = None):
+def make_borderless(app_name = None, resolution_string = None, monitor_name = None, check = None):
     global selected_app, windowList, saveList, temp_win_height, temp_win_width
     
     app_name = app_name or selected_app
@@ -151,10 +151,10 @@ def make_borderless(app_name = None, resolution_string = None, monitor_name = No
         return
 
     # I cannot figure out what this is useful for, so I removed it for now. Feel free to reverse this if I missed something.
-    # if check == None:
-    #     left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-    #     temp_win_height = bottom - top
-    #     temp_win_width = right - left
+    if check == None:
+        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+        temp_win_height = bottom - top
+        temp_win_width = right - left
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
 
