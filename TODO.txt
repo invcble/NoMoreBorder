@@ -9,4 +9,4 @@ Save to Config - button - done
 add start with windows - done
 add minimize to tray - done
 custom resolution field
-store pre-change dimensions in config
+store pre-change dimensions in config - done

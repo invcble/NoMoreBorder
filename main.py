@@ -13,23 +13,18 @@ from screeninfo import get_monitors
 
 user32 = ctypes.windll.user32
 # user32.SetProcessDPIAware()
-
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
 Geometry = "400x300+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
 windowList = []
 saveList = {}
 selected_app = "0"
-temp_win_height = 1080
-temp_win_width = 1920
 monitors = {}
 selected_monitor = None
 tray_icon = None
 
 # Get monitor info from screeninfo
 for index, m in enumerate(get_monitors()):
-    # I'm not using m.name here because mine were really weird, like m.name='\\\\.\\DISPLAY17',
-    # but there is probably a better way to do this
     name = f"Display {str(index + 1)}" 
     if(m.is_primary):
         name += " (Primary)"
@@ -74,7 +69,7 @@ def update_window_list():
             for temp_title in temp_titles:
                 if temp_title.startswith(save_item):
                     # Use saved settings if they exist
-                    make_borderless(save_item, saveList[save_item]["resolution"], saveList[save_item]["monitor"], check=1) 
+                    make_borderless(save_item, saveList[save_item]["resolution"], saveList[save_item]["monitor"], write_needed=False) 
 
         if( windowList != temp ):
             try:
@@ -87,7 +82,8 @@ def update_window_list():
 
 def refresh_window_list():
     global window_list_dropdown, windowList
-    windowList_strings = [f"{title[0:50]}" for hwnd, title in windowList] #Dirty truncate to resize drop-down UI
+    # Dirty truncate to resize drop-down UI
+    windowList_strings = [f"{title[0:50]}" for hwnd, title in windowList]
     window_list_dropdown.configure(values = windowList_strings)
 
     
@@ -149,8 +145,8 @@ def combo_answer_display(choice):
     selected_monitor = choice
     label.configure(text="Display Resolution is " + str(monitors[choice].width) + 'x' + str(monitors[choice].height))
 
-def make_borderless(app_name = None, resolution_string = None, monitor_name = None, check = None):
-    global selected_app, windowList, saveList, temp_win_height, temp_win_width
+def make_borderless(app_name = None, resolution_string = None, monitor_name = None, write_needed = True):
+    global selected_app, windowList, saveList
     
     app_name = app_name or selected_app
     resolution_string = resolution_string or selected_resolution
@@ -165,10 +161,10 @@ def make_borderless(app_name = None, resolution_string = None, monitor_name = No
     if hwnd is None:
         return
 
-    if check == None:
+    if write_needed:
         left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-        temp_win_height = bottom - top
-        temp_win_width = right - left
+        pre_win_height = bottom - top
+        pre_win_width = right - left
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
 
@@ -188,12 +184,25 @@ def make_borderless(app_name = None, resolution_string = None, monitor_name = No
     win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
     win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-    # Always update saveList in case the selected resolution or monitor has changed
-    saveList[app_name] = {"monitor": monitor_name, "resolution": resolution_string}
-    update_apps(saveList)
+    if write_needed:
+        saveList[app_name] = {}
+        saveList[app_name]["monitor"] = monitor_name
+        saveList[app_name]["resolution"] = resolution_string
+        saveList[app_name]["pre_win_height"] = pre_win_height
+        saveList[app_name]["pre_win_width"] = pre_win_width        
+        update_apps(saveList)
+    else:
+        # Always update saveList in case the selected resolution or monitor has changed
+        saveList[app_name]["monitor"] = monitor_name
+        saveList[app_name]["resolution"] = resolution_string
+        update_apps(saveList)
 
 def restore_window():
-    global selected_app, windowList, temp_win_height, temp_win_width
+    global selected_app, windowList, saveList
+
+    app_name = selected_app
+    pre_win_height = saveList[app_name]["pre_win_height"]
+    pre_win_width = saveList[app_name]["pre_win_width"]  
     
     hwnd = None
     for win_hwnd, win_title in windowList:
@@ -207,7 +216,7 @@ def restore_window():
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX | win32con.WS_THICKFRAME
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
     
-    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, temp_win_width, temp_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, pre_win_width, pre_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
     
     if selected_app in saveList:
         saveList.pop(selected_app)
@@ -297,7 +306,8 @@ monitor_frame = ctk.CTkFrame(panel, fg_color = "transparent")
 monitor_frame.pack(pady=10)
 
 monitor_dropdown = ctk.CTkComboBox(monitor_frame, values = list(monitors.keys()), width = 175, command = combo_answer_display)
-monitor_dropdown.set(selected_monitor) # Main display isn't always Display 1, so set whatever the system default is
+# Main display isn't always Display 1, so set whatever the system default is
+monitor_dropdown.set(selected_monitor)
 monitor_dropdown.grid(row=0, column=0, padx=(20, 5), pady=(0, 10))
 
 resolution_dropdown = ctk.CTkComboBox(monitor_frame, values = list(resolution_options.keys()), width = 175, command = combo_answer_resolution)
