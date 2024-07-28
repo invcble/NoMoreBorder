@@ -6,9 +6,9 @@ NoMoreBorder is a utility designed to enhance your multitasking experience by en
 
 ### Application Interface
 
-Here's how NoMoreBorder looks in action, demonstrating its straightforward and user-friendly interface.
+Here's how NoMoreBorder user-friendly interface looks in action, courtesy of ![CustomTkinter](https://github.com/TomSchimansky/CustomTkinter).
 
-![Screenshot 2024-07-25 234700](https://github.com/user-attachments/assets/33682870-2d65-4683-bc57-794c06a8746c)
+![UI](https://github.com/invcble/NoMoreBorder/blob/e769aa3f8fe05a1d76d47f29bc3367636d7eeb11/pictures/UI.png)
 
 ### Before and After
 
@@ -16,24 +16,25 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 
 #### Before Applying NoMoreBorder
 
-![2024-07-25_23-53-30](https://github.com/user-attachments/assets/832e5ca1-2fde-45ca-8432-e85a9298f140)
+![From](https://github.com/invcble/NoMoreBorder/blob/e769aa3f8fe05a1d76d47f29bc3367636d7eeb11/pictures/From.png)
 
 #### After Applying NoMoreBorder
 
-![FTLGame_2024-07-25_23-53-36](https://github.com/user-attachments/assets/cff48b76-fae0-4de8-846c-f48ff7a5b430)
+![To](https://github.com/invcble/NoMoreBorder/blob/e769aa3f8fe05a1d76d47f29bc3367636d7eeb11/pictures/To.png)
 
 #### After Applying NoMoreBorder with custom resolution
 
-![2024-07-25_23-53-57](https://github.com/user-attachments/assets/b6051378-cd1d-4d05-a332-5d8503e393a8)
+![Custom](https://github.com/invcble/NoMoreBorder/blob/e769aa3f8fe05a1d76d47f29bc3367636d7eeb11/pictures/Custom.png)
 
 ## Features
 
-- **Borderless Fullscreen**: Make any windowed application run in fullscreen mode without the traditional window borders, providing an immersive experience without altering the screen resolution.
-- **Custom Resolution**: Have a big screen and an old game made for small screens and low resolutions where windowed mode is too small but fullscreen is so big you barely read the dialog? Now you can also set a custom resolution.
-- **Multiple Monitor Support**: Ability to select which monitor you want the window to be on.
-- **Reversible Action**: Easily revert any changes made to the window, restoring the original windowed mode with borders.
-- **Session Memory**: NoMoreBorder remembers which applications were set to borderless mode, automatically reapplying these settings in future sessions. It's done through a configuration file, ensuring a seamless experience even after restarting the software or your computer.
-- **Dark Mode**: Includes a built-in dark mode, allowing for an on-the-fly theme switch to reduce eye strain during late-night sessions.
+1. **Borderless Fullscreen**: Make any windowed application run in fullscreen mode without the traditional window borders, providing an immersive experience without altering the screen resolution.
+2. **Custom Resolution**: Have a big screen and an old game made for small screens and low resolutions where windowed mode is too small but fullscreen is so big you barely read the dialog? Now you can also set a custom resolution.
+3. **Multiple Monitor Support**: Ability to select which monitor you want the window to be on.
+4. **Reversible Action**: Easily revert any changes made to the window, restoring the original windowed mode with borders.
+5. **Session Memory**: NoMoreBorder remembers which applications were set to borderless mode, automatically reapplying these settings in future sessions. It's done through a configuration file, ensuring a seamless experience even after restarting the software or your computer.
+6. **Dark Mode**: Includes a built-in dark mode, allowing for an on-the-fly theme switch to reduce eye strain during late-night sessions.
+7. **Start with Windows**: Now offers the option to auto start with your system, to save you a few clicks!
 
 ## **Getting Started**
 
@@ -43,7 +44,7 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 
 ### Compiling your own
 
-You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, and `pyinstaller`. These can be installed using pip:
+You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, `pyinstaller`, `screeninfo`, `pystray`, and `pillow`. These can be installed using pip:
 
 ```bash
 pip install customtkinter pywin32 pyinstaller screeninfo pystray pillow
@@ -59,17 +60,10 @@ python main.py
 To compile, simply put this command in your terminal or command prompt:
 
 ```bash
-pyinstaller --onefile --noconsole main.py
+pyinstaller --onefile --noconsole --icon=icon.ico main.py
 ```
 
 You will find the exe in dist folder in parent directory.
-
-## How to Use
-
-1. **Select an Application**: Use the dropdown menu to select an application currently running on your system.
-2. **Make Borderless**: Click the "Make it Borderless" button to remove the window borders and expand the application to fill the screen.
-3. **Revert Changes**: If you wish to revert the changes and restore the original windowed mode with borders, simply select the application again and click the "Undo Lmao!" button.
-4. **Theme Switching**: Use the "Appearance Mode" options at the bottom of the application window to switch between System, Light, and Dark themes.
 
 ## Configuration
 
