@@ -215,7 +215,7 @@ def on_show(icon, item):
     
     def do1():
         panel.attributes("-alpha", 0)   
-    panel.after(100, do1())
+    panel.after(10, do1())
     
     panel.deiconify()
     panel.update_idletasks()
@@ -223,7 +223,7 @@ def on_show(icon, item):
     
     def do2():
         panel.attributes("-alpha", 1)   
-    panel.after(200, do2())
+    panel.after(1000, do2())
     
     tray_icon = None
 
@@ -249,6 +249,9 @@ panel.geometry(Geometry)
 panel.resizable(False, False)
 panel.title('NoMoreBorder')
 
+# if current_settings["minimize"] == 'yes':
+#     minimize_to_tray()
+
 label = ctk.CTkLabel(panel, text="Display Resolution is " + str(monitors[selected_monitor].width) + 'x' + str(monitors[selected_monitor].height), font = ("Helvetica", 20))
 label.pack(pady=20)
 
@@ -266,20 +269,31 @@ resolution_dropdown = ctk.CTkComboBox(monitor_frame, values = list(resolution_op
 resolution_dropdown.grid(row=0, column=1, padx=(5, 20), pady=(0, 10))
 
 buttons_frame = ctk.CTkFrame(panel, fg_color = "transparent")
-buttons_frame.pack(pady=10)
+buttons_frame.pack(pady=5)
 
-submit_button = ctk.CTkButton(buttons_frame, text="Make it Borderless", command = make_borderless)
+submit_button = ctk.CTkButton(buttons_frame, text="Make it Borderless", command = make_borderless, height=35)
 submit_button.grid(row=0, column=0, padx=5)
 
-undo_button = ctk.CTkButton(buttons_frame, text="Undo Lmao!", command = restore_window)
+undo_button = ctk.CTkButton(buttons_frame, text="Undo Lmao!", command = restore_window, height=35)
 undo_button.grid(row=0, column=1, padx=5)
 
-toggle_mode = ctk.CTkLabel(panel, text="Appearance Mode:", anchor="w")
-toggle_mode.pack(padx=20, pady=(10, 0))
+toggle_mode_options2 = ctk.CTkCheckBox(panel, text='Start with Windows')
+toggle_mode_options2.pack(padx=20, pady=(24, 0))
 
-toggle_mode_options = ctk.CTkOptionMenu(panel, values=[ "System", "Light", "Dark" ], command = change_appearance_mode_event)
-toggle_mode_options.pack(padx=20, pady=(10, 0))
+buttons_frame2 = ctk.CTkFrame(panel, fg_color = "transparent")
+buttons_frame2.pack(pady=0)
+
+toggle_mode = ctk.CTkLabel(buttons_frame2, text="Appearance Mode:", anchor="w")
+toggle_mode.grid(row=1, column=0, padx=5, pady=5)
+
+toggle_mode_options = ctk.CTkOptionMenu(buttons_frame2, values=[ "System", "Light", "Dark" ], command = change_appearance_mode_event, width=100, height=22)
+toggle_mode_options.grid(row=1, column=1, padx=10, pady=5)
 toggle_mode_options.set(current_settings["theme"])
+
+# toggle_mode = ctk.CTkLabel(buttons_frame, text="Start with Windows:", anchor="w")
+# toggle_mode.grid(row=2, column=0, padx=5)
+
+
 
 Thread(target = update_window_list).start()
 
