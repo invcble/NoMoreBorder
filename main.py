@@ -106,6 +106,8 @@ def load_settings():
             return settings
     except:
         return {"theme": "System", "apps": {}, "start_with_windows": False}
+# if current_settings["minimize"] == 'yes':
+#     minimize_to_tray()
 
 def save_settings(settings):
     try:
@@ -275,8 +277,8 @@ panel.geometry(Geometry)
 panel.resizable(False, False)
 panel.title('NoMoreBorder')
 
-# if current_settings["minimize"] == 'yes':
-#     minimize_to_tray()
+if current_settings["start_with_windows"] == True:
+    minimize_to_tray()
 
 label = ctk.CTkLabel(panel, text="Display Resolution is " + str(monitors[selected_monitor].width) + 'x' + str(monitors[selected_monitor].height), font = ("Helvetica", 20))
 label.pack(pady=20)
