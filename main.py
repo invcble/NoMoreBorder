@@ -238,13 +238,11 @@ def on_show(icon, item):
     tray_icon = None
 
 def create_custom_icon():
-    # Create an image with mode 'RGBA' and size 64x64
     image = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    # Define the "C" shape to fit the entire image
-    draw.rectangle([0, 0, 64, 64], fill=(0, 156,255,255))  # Outer square
-    draw.rectangle([16, 16, 64, 48], fill=(0, 0, 0, 0))      # Inner cut-out
+    draw.rectangle([0, 0, 64, 64], fill=(0, 156,255,255))
+    draw.rectangle([16, 16, 64, 48], fill=(0, 0, 0, 0))
     draw.rectangle([48, 16, 64, 48], fill=(0, 98,177,255))
     return image
 
@@ -261,7 +259,7 @@ def minimize_to_tray(event=None):
 
 def set_startup(startup):
     s_name = "NoMoreBorder"
-    address = sys.executable  # This will be the path to the compiled executable
+    address = sys.executable
     key = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
     open_key = reg.OpenKey(reg.HKEY_CURRENT_USER, key, 0, reg.KEY_ALL_ACCESS)
@@ -327,11 +325,6 @@ toggle_mode.grid(row=1, column=0, padx=5, pady=5)
 toggle_mode_options = ctk.CTkOptionMenu(buttons_frame2, values=[ "System", "Light", "Dark" ], command = change_appearance_mode_event, width=100, height=22)
 toggle_mode_options.grid(row=1, column=1, padx=10, pady=5)
 toggle_mode_options.set(current_settings["theme"])
-
-# toggle_mode = ctk.CTkLabel(buttons_frame, text="Start with Windows:", anchor="w")
-# toggle_mode.grid(row=2, column=0, padx=5)
-
-
 
 Thread(target = update_window_list).start()
 
