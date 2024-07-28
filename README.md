@@ -6,7 +6,7 @@ NoMoreBorder is a utility designed to enhance your multitasking experience by en
 
 ### Application Interface
 
-Here's how NoMoreBorder user-friendly interface looks in action, courtesy of ![CustomTkinter](https://github.com/TomSchimansky/CustomTkinter).
+Here's how NoMoreBorder user-friendly interface looks in action, courtesy of [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter).
 
 ![UI](https://github.com/invcble/NoMoreBorder/blob/e769aa3f8fe05a1d76d47f29bc3367636d7eeb11/pictures/UI.png)
 
