@@ -1,15 +1,5 @@
 {
     "theme": "System",
-    "apps": {
-        "DARK SOULS\u2122: REMASTERED": {
-            "monitor": "Display 1",
-            "x_offset": "0",
-            "y_offset": "0",
-            "width": "2560",
-            "height": "1600",
-            "pre_win_height": 839,
-            "pre_win_width": 1296
-        }
-    },
+    "apps": {},
     "start_with_windows": false
 }

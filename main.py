@@ -15,7 +15,7 @@ user32 = ctypes.windll.user32
 # user32.SetProcessDPIAware()
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
-Geometry = "400x600+" + str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
+Geometry = "400x380+" + str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
 windowList = []
 saveList = {}
 selected_app = "0"
@@ -157,9 +157,14 @@ def make_borderless(app_name=None, write_needed=True):
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
-    target_resolution = (int(custom_width.get()), int(custom_height.get()))
-    location_x = monitors[selected_monitor].x + int(custom_x_offset.get())
-    location_y = monitors[selected_monitor].y + int(custom_y_offset.get())
+    if write_needed:
+        target_resolution = (int(custom_width.get()), int(custom_height.get()))
+        location_x = monitors[selected_monitor].x + int(custom_x_offset.get())
+        location_y = monitors[selected_monitor].y + int(custom_y_offset.get())
+    else:
+        target_resolution = (int(saveList[app_name]["width"]), int(saveList[app_name]["height"]))
+        location_x = monitors[saveList[app_name]["monitor"]].x + int(saveList[app_name]["x_offset"])
+        location_y = monitors[saveList[app_name]["monitor"]].y + int(saveList[app_name]["y_offset"])
 
     win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
     win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
