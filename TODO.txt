@@ -6,7 +6,7 @@ Undo - button - done
 save original resolution - done
 Save to Config - button - done
 
-add start with windows
-add minimize to tray
-custom resolution field
-store pre-change dimensions in config
+add start with windows - done
+add minimize to tray - done
+custom resolution field - done
+store pre-change dimensions in config - done

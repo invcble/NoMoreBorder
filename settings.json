@@ -1,4 +1,5 @@
 {
     "theme": "System",
-    "apps": {}
+    "apps": {},
+    "start_with_windows": false
 }

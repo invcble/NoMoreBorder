@@ -46,7 +46,7 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, and `pyinstaller`. These can be installed using pip:
 
 ```bash
-pip install customtkinter pywin32 pyinstaller screeninfo
+pip install customtkinter pywin32 pyinstaller screeninfo pystray pillow
 ```
 
 ### Running NoMoreBorder
