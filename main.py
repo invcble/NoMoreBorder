@@ -6,7 +6,7 @@ import win32con
 import json
 import threading
 import winreg as reg
-from PIL import Image
+from PIL import Image, ImageDraw
 from pystray import Icon, MenuItem, Menu
 from threading import Thread
 from screeninfo import get_monitors
@@ -106,8 +106,6 @@ def load_settings():
             return settings
     except:
         return {"theme": "System", "apps": {}, "start_with_windows": False}
-# if current_settings["minimize"] == 'yes':
-#     minimize_to_tray()
 
 def save_settings(settings):
     try:
@@ -239,6 +237,17 @@ def on_show(icon, item):
     
     tray_icon = None
 
+def create_custom_icon():
+    # Create an image with mode 'RGBA' and size 64x64
+    image = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    # Define the "C" shape to fit the entire image
+    draw.rectangle([0, 0, 64, 64], fill=(0, 156,255,255))  # Outer square
+    draw.rectangle([16, 16, 64, 48], fill=(0, 0, 0, 0))      # Inner cut-out
+    draw.rectangle([48, 16, 64, 48], fill=(0, 98,177,255))
+    return image
+
 def minimize_to_tray(event=None):
     global tray_icon
     panel.withdraw()
@@ -247,7 +256,7 @@ def minimize_to_tray(event=None):
             MenuItem('Show', on_show),
             MenuItem('Quit', on_quit)
         )
-        tray_icon = Icon("NoMoreBorder", Image.open("icon.png"), "NoMoreBorder", menu)
+        tray_icon = Icon("NoMoreBorder", create_custom_icon(), "NoMoreBorder", menu)
         threading.Thread(target=tray_icon.run, daemon=True).start()
 
 def set_startup(startup):

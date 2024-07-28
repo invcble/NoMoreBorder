@@ -1,5 +1,5 @@
 {
     "theme": "System",
     "apps": {},
-    "start_with_windows": false
+    "start_with_windows": true
 }
