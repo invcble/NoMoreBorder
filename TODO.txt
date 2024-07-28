@@ -7,6 +7,6 @@ save original resolution - done
 Save to Config - button - done
 
 add start with windows
-add minimize to tray
+add minimize to tray - install pystray pillow
 custom resolution field
 store pre-change dimensions in config

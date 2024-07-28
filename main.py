@@ -4,6 +4,9 @@ import time
 import win32gui
 import win32con
 import json
+import threading
+from PIL import Image
+from pystray import Icon, MenuItem, Menu
 from threading import Thread
 from screeninfo import get_monitors
 
@@ -12,6 +15,7 @@ user32 = ctypes.windll.user32
 
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
+Geometry = "400x300+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
 windowList = []
 saveList = {}
 selected_app = "0"
@@ -19,6 +23,7 @@ temp_win_height = 1080
 temp_win_width = 1920
 monitors = {}
 selected_monitor = None
+tray_icon = None
 
 # Get monitor info from screeninfo
 for index, m in enumerate(get_monitors()):
@@ -150,7 +155,6 @@ def make_borderless(app_name = None, resolution_string = None, monitor_name = No
     if hwnd is None:
         return
 
-    # I cannot figure out what this is useful for, so I removed it for now. Feel free to reverse this if I missed something.
     if check == None:
         left, top, right, bottom = win32gui.GetWindowRect(hwnd)
         temp_win_height = bottom - top
@@ -199,16 +203,51 @@ def restore_window():
         saveList.pop(selected_app)
         update_apps(saveList)
 
+def on_quit(icon, item):
+    icon.stop()
+    panel.after(0, panel.quit)
+
+def on_show(icon, item):
+    global tray_icon
+    icon.stop()
+    
+    panel.geometry(Geometry)
+    
+    def do1():
+        panel.attributes("-alpha", 0)   
+    panel.after(100, do1())
+    
+    panel.deiconify()
+    panel.update_idletasks()
+    panel.update()
+    
+    def do2():
+        panel.attributes("-alpha", 1)   
+    panel.after(200, do2())
+    
+    tray_icon = None
+
+def minimize_to_tray(event=None):
+    global tray_icon
+    panel.withdraw()
+    if tray_icon is None:
+        menu = Menu(
+            MenuItem('Show', on_show),
+            MenuItem('Quit', on_quit)
+        )
+        tray_icon = Icon("NoMoreBorder", Image.open("icon.png"), "NoMoreBorder", menu)
+        threading.Thread(target=tray_icon.run, daemon=True).start()
+
 current_settings = load_settings()
 saveList = current_settings["apps"]
 ctk.set_appearance_mode(current_settings["theme"])
 ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 
+
 panel = ctk.CTk()
-panel.geometry("400x300+"+ str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200))
+panel.geometry(Geometry)
 panel.resizable(False, False)
 panel.title('NoMoreBorder')
-
 
 label = ctk.CTkLabel(panel, text="Display Resolution is " + str(monitors[selected_monitor].width) + 'x' + str(monitors[selected_monitor].height), font = ("Helvetica", 20))
 label.pack(pady=20)
@@ -244,6 +283,9 @@ toggle_mode_options.set(current_settings["theme"])
 
 Thread(target = update_window_list).start()
 
+panel.bind('<Unmap>', minimize_to_tray)
 # panel.attributes('-topmost', True)
 panel.mainloop()
 
+if tray_icon is not None:
+    tray_icon.stop()
