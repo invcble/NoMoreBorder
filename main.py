@@ -1,10 +1,11 @@
 import customtkinter as ctk
-import ctypes
+import ctypes, sys
 import time
 import win32gui
 import win32con
 import json
 import threading
+import winreg as reg
 from PIL import Image
 from pystray import Icon, MenuItem, Menu
 from threading import Thread
@@ -94,16 +95,17 @@ def load_settings():
     try:
         with open("settings.json", "r") as f:
             settings = json.load(f)
-            #  Upgrade to new settings format if "apps" is saved as a list
             if isinstance(settings["apps"], list):
                 settings["apps"] = {app:{
                     "monitor": "Display 1 (Primary)",
                     "resolution": "Use Display Resolution"
                     } for app in settings["apps"]}
                 save_settings(settings)
+            if "start_with_windows" not in settings:
+                settings["start_with_windows"] = False
             return settings
     except:
-        return {"theme": "System", "apps": {}}
+        return {"theme": "System", "apps": {}, "start_with_windows": False}
 
 def save_settings(settings):
     try:
@@ -111,6 +113,14 @@ def save_settings(settings):
             json.dump(settings, f, indent=4)
     except:
         pass
+
+def change_start_with_windows_event():
+    global check_box
+    settings = load_settings()
+    start_with_windows = check_box.get() == 1
+    settings["start_with_windows"] = start_with_windows
+    set_startup(start_with_windows)
+    save_settings(settings)
 
 def update_theme(new_theme):
     settings = load_settings()
@@ -238,6 +248,22 @@ def minimize_to_tray(event=None):
         tray_icon = Icon("NoMoreBorder", Image.open("icon.png"), "NoMoreBorder", menu)
         threading.Thread(target=tray_icon.run, daemon=True).start()
 
+def set_startup(startup):
+    s_name = "NoMoreBorder"
+    address = sys.executable  # This will be the path to the compiled executable
+    key = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+    open_key = reg.OpenKey(reg.HKEY_CURRENT_USER, key, 0, reg.KEY_ALL_ACCESS)
+    
+    if startup:
+        reg.SetValueEx(open_key, s_name, 0, reg.REG_SZ, address)
+    else:
+        try:
+            reg.DeleteValue(open_key, s_name)
+        except FileNotFoundError:
+            pass
+    reg.CloseKey(open_key)
+
 current_settings = load_settings()
 saveList = current_settings["apps"]
 ctk.set_appearance_mode(current_settings["theme"])
@@ -277,8 +303,9 @@ submit_button.grid(row=0, column=0, padx=5)
 undo_button = ctk.CTkButton(buttons_frame, text="Undo Lmao!", command = restore_window, height=35)
 undo_button.grid(row=0, column=1, padx=5)
 
-toggle_mode_options2 = ctk.CTkCheckBox(panel, text='Start with Windows')
-toggle_mode_options2.pack(padx=20, pady=(24, 0))
+check_box = ctk.CTkCheckBox(panel, text='Start with Windows', command=change_start_with_windows_event)
+check_box.pack(padx=20, pady=(24, 0))
+check_box.select() if current_settings["start_with_windows"] else check_box.deselect()
 
 buttons_frame2 = ctk.CTkFrame(panel, fg_color = "transparent")
 buttons_frame2.pack(pady=0)
