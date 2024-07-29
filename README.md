@@ -38,11 +38,13 @@ These screenshots demonstrate the effect of NoMoreBorder on a sample application
 
 ## **Getting Started**
 
-**Just download the `NoMoreBorder.exe` from [releases](https://github.com/invcble/NoMoreBorder/releases), and run it as it is.**
+### Option 1. Download stand-alone exe
+
+Just download the `NoMoreBorder.exe` from [releases](https://github.com/invcble/NoMoreBorder/releases), and run it as it is. No need to setup dependencies, everything is included in this binary executable.
 
 > **Note**: For the best experience, it's recommended to run NoMoreBorder with administrative privileges. This ensures that the application can properly interact with other software windows on your system.
 
-### Compiling your own
+### or, Option 2. Run as a script / Compile your own exe
 
 You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, `pyinstaller`, `screeninfo`, `pystray`, and `pillow`. These can be installed using pip:
 
