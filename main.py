@@ -3,13 +3,16 @@ import ctypes, sys
 import time
 import win32gui
 import win32con
-import json
+import json, os
 import threading
 import winreg as reg
 from PIL import Image, ImageDraw
 from pystray import Icon, MenuItem, Menu
 from threading import Thread
 from screeninfo import get_monitors
+
+DOCUMENTS_FOLDER = os.path.join(os.path.expanduser("~"), "Documents", "NoMoreBorder")
+SETTINGS_FILE_PATH = os.path.join(DOCUMENTS_FOLDER, "settings.json")
 
 user32 = ctypes.windll.user32
 # user32.SetProcessDPIAware()
@@ -64,8 +67,11 @@ def refresh_window_list():
     window_list_dropdown.configure(values=windowList_strings)
 
 def load_settings():
+    if not os.path.exists(DOCUMENTS_FOLDER):
+        os.makedirs(DOCUMENTS_FOLDER)
+
     try:
-        with open("settings.json", "r") as f:
+        with open(SETTINGS_FILE_PATH, "r") as f:
             settings = json.load(f)
             if isinstance(settings["apps"], list):
                 settings["apps"] = {app: {
@@ -83,9 +89,10 @@ def load_settings():
     except:
         return {"theme": "System", "apps": {}, "start_with_windows": False}
 
+
 def save_settings(settings):
     try:
-        with open("settings.json", "w") as f:
+        with open(SETTINGS_FILE_PATH, "w") as f:
             json.dump(settings, f, indent=4)
     except:
         pass
