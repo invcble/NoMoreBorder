@@ -69,7 +69,7 @@ You will find the exe in dist folder in parent directory.
 
 ## Configuration
 
-NoMoreBorder automatically saves your settings to a `settings.json` file located in the same directory as the application. This file includes the list of applications set to borderless mode and the selected theme, ensuring your preferences are maintained across sessions.
+NoMoreBorder automatically saves your settings to a `settings.json` file located in the Users/user/Documents/NoMoreBorder/ directory. This file includes the list of applications set to borderless mode and the selected theme, ensuring your preferences are maintained across sessions.
 
 ## Contributions
 
