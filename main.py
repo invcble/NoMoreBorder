@@ -156,44 +156,49 @@ def make_borderless(app_name=None, write_needed=True):
     if hwnd is None:
         return
 
-    if write_needed:
-        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-        pre_win_height = bottom - top
-        pre_win_width = right - left
+    try:
+        if write_needed:
+            left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+            pre_win_height = bottom - top
+            pre_win_width = right - left
 
-    style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
-    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+        style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
+        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
-    if write_needed:
-        target_resolution = (int(custom_width.get()), int(custom_height.get()))
-        location_x = monitors[selected_monitor].x + int(custom_x_offset.get())
-        location_y = monitors[selected_monitor].y + int(custom_y_offset.get())
-    else:
-        target_resolution = (int(saveList[app_name]["width"]), int(saveList[app_name]["height"]))
-        location_x = monitors[saveList[app_name]["monitor"]].x + int(saveList[app_name]["x_offset"])
-        location_y = monitors[saveList[app_name]["monitor"]].y + int(saveList[app_name]["y_offset"])
+        if write_needed:
+            target_resolution = (int(custom_width.get()), int(custom_height.get()))
+            location_x = monitors[selected_monitor].x + int(custom_x_offset.get())
+            location_y = monitors[selected_monitor].y + int(custom_y_offset.get())
+        else:
+            target_resolution = (int(saveList[app_name]["width"]), int(saveList[app_name]["height"]))
+            location_x = monitors[saveList[app_name]["monitor"]].x + int(saveList[app_name]["x_offset"])
+            location_y = monitors[saveList[app_name]["monitor"]].y + int(saveList[app_name]["y_offset"])
 
-    win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
-    win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+        win32gui.MoveWindow(hwnd, location_x, location_y, target_resolution[0], target_resolution[1], True)
+        win32gui.SetWindowPos(hwnd, None, location_x, location_y, target_resolution[0], target_resolution[1], win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-    if write_needed:
-        saveList[app_name] = {}
-        saveList[app_name]["monitor"] = selected_monitor
-        saveList[app_name]["x_offset"] = custom_x_offset.get()
-        saveList[app_name]["y_offset"] = custom_y_offset.get()
-        saveList[app_name]["width"] = custom_width.get()
-        saveList[app_name]["height"] = custom_height.get()
-        saveList[app_name]["pre_win_height"] = pre_win_height
-        saveList[app_name]["pre_win_width"] = pre_win_width
-        update_apps(saveList)
-    else:
-        # saveList[app_name]["monitor"] = selected_monitor
-        # saveList[app_name]["x_offset"] = custom_x_offset.get()
-        # saveList[app_name]["y_offset"] = custom_y_offset.get()
-        # saveList[app_name]["width"] = custom_width.get()
-        # saveList[app_name]["height"] = custom_height.get()
-        # update_apps(saveList)
-        pass
+        if write_needed:
+            saveList[app_name] = {}
+            saveList[app_name]["monitor"] = selected_monitor
+            saveList[app_name]["x_offset"] = custom_x_offset.get()
+            saveList[app_name]["y_offset"] = custom_y_offset.get()
+            saveList[app_name]["width"] = custom_width.get()
+            saveList[app_name]["height"] = custom_height.get()
+            saveList[app_name]["pre_win_height"] = pre_win_height
+            saveList[app_name]["pre_win_width"] = pre_win_width
+            update_apps(saveList)
+        else:
+            # saveList[app_name]["monitor"] = selected_monitor
+            # saveList[app_name]["x_offset"] = custom_x_offset.get()
+            # saveList[app_name]["y_offset"] = custom_y_offset.get()
+            # saveList[app_name]["width"] = custom_width.get()
+            # saveList[app_name]["height"] = custom_height.get()
+            # update_apps(saveList)
+            pass
+    except win32gui.error as e:
+        if e.winerror == 1400:
+            print(e)
+            pass
 
 def restore_window():
     global selected_app, windowList, saveList
