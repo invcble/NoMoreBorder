@@ -10,8 +10,16 @@ from PIL import Image, ImageDraw
 from pystray import Icon, MenuItem, Menu
 from threading import Thread
 from screeninfo import get_monitors
+from ctypes import wintypes, windll
 
-DOCUMENTS_FOLDER = os.path.join(os.path.expanduser("~"), "Documents", "NoMoreBorder")
+def get_documents_folder():
+    CSIDL_PERSONAL = 5
+    SHGFP_TYPE_CURRENT = 0
+    buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
+    windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+    return buf.value
+
+DOCUMENTS_FOLDER = os.path.join(get_documents_folder(), "NoMoreBorder")
 SETTINGS_FILE_PATH = os.path.join(DOCUMENTS_FOLDER, "settings.json")
 
 user32 = ctypes.windll.user32
