@@ -49,7 +49,7 @@ Just download the `NoMoreBorder.exe` from [releases](https://github.com/invcble/
 You can run it as a python script or compile your own exe, I used pyinstaller. Ensure you have Python installed on your system along with the necessary packages: `customtkinter`, `pywin32`, `pyinstaller`, `screeninfo`, `pystray`, and `pillow`. These can be installed using pip:
 
 ```bash
-pip install customtkinter pywin32 pyinstaller screeninfo pystray pillow
+pip install -r requirements.txt
 ```
 
 ### Running NoMoreBorder

@@ -30,6 +30,7 @@ Geometry = "400x380+" + str(int(screen_width/2) - 200) + '+' + str(int(screen_he
 windowList = []
 saveList = {}
 selected_app = "0"
+exact_match = False
 monitors = {}
 selected_monitor = None
 tray_icon = None
@@ -71,7 +72,7 @@ def update_window_list():
 
 def refresh_window_list():
     global window_list_dropdown, windowList
-    windowList_strings = [f"{title[0:50]}" for hwnd, title in windowList]
+    windowList_strings = [title for hwnd, title in windowList]
     window_list_dropdown.configure(values=windowList_strings)
 
 def load_settings():
@@ -105,6 +106,10 @@ def save_settings(settings):
     except:
         pass
 
+def exact_match_event():
+    global exact_match_check, exact_match
+    exact_match = exact_match_check.get() == 1
+
 def change_start_with_windows_event():
     global check_box
     settings = load_settings()
@@ -127,6 +132,7 @@ def change_appearance_mode_event(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
     update_theme(new_appearance_mode)
 
+
 def combo_answer(choice):
     global selected_app
     selected_app = choice
@@ -136,6 +142,9 @@ def combo_answer(choice):
         custom_y_offset.set(saveList[choice]["y_offset"])
         custom_width.set(saveList[choice]["width"])
         custom_height.set(saveList[choice]["height"])
+        exact_match = saveList[choice]["exact_match"]
+        if exact_match_check.get() != (1 if exact_match else 0):
+           exact_match_check.toggle()
     else:
         custom_x_offset.set("0")
         custom_y_offset.set("0")
@@ -151,16 +160,23 @@ def combo_answer_display(choice):
         custom_width.set(str(monitors[selected_monitor].width))
         custom_height.set(str(monitors[selected_monitor].height))
 
-def make_borderless(app_name=None, write_needed=True):
-    global selected_app, windowList, saveList, custom_x_offset, custom_y_offset, custom_width, custom_height, selected_monitor
-
-    app_name = app_name or selected_app
+def get_window(app_name, exact_match):
+    global windowList
     hwnd = None
     for win_hwnd, win_title in windowList:
-        if win_title.startswith(app_name):
+        if (win_title == app_name if exact_match else win_title.startswith(app_name)):
             hwnd = win_hwnd
             break
 
+    return hwnd
+
+def make_borderless(app_name=None, write_needed=True):
+    global selected_app, windowList, saveList, custom_x_offset, custom_y_offset, custom_width, custom_height, selected_monitor, exact_match
+
+    app_name = app_name or selected_app
+    exact = exact_match if write_needed else saveList[app_name].get("exact_match")
+    exact = False if exact is None else exact
+    hwnd = get_window(app_name, exact)
     if hwnd is None:
         return
 
@@ -194,6 +210,7 @@ def make_borderless(app_name=None, write_needed=True):
             saveList[app_name]["height"] = custom_height.get()
             saveList[app_name]["pre_win_height"] = pre_win_height
             saveList[app_name]["pre_win_width"] = pre_win_width
+            saveList[app_name]["exact_match"] = exact_match
             update_apps(saveList)
         else:
             # saveList[app_name]["monitor"] = selected_monitor
@@ -209,7 +226,7 @@ def make_borderless(app_name=None, write_needed=True):
             pass
 
 def restore_window():
-    global selected_app, windowList, saveList
+    global selected_app, windowList, saveList, exact_match
 
     app_name = selected_app
 
@@ -217,12 +234,7 @@ def restore_window():
         pre_win_height = saveList[app_name]["pre_win_height"]
         pre_win_width = saveList[app_name]["pre_win_width"]
 
-        hwnd = None
-        for win_hwnd, win_title in windowList:
-            if win_title.startswith(selected_app):
-                hwnd = win_hwnd
-                break
-
+        hwnd = get_window(app_name, saveList[app_name].get("exact_match") or exact_match)
         if hwnd is None:
             return
 
@@ -231,8 +243,8 @@ def restore_window():
 
         win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, pre_win_width, pre_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-        if selected_app in saveList:
-            saveList.pop(selected_app)
+        if app_name in saveList:
+            saveList.pop(app_name)
             update_apps(saveList)
 
 def on_quit(icon, item):
@@ -303,23 +315,28 @@ ctk.set_default_color_theme("blue")  # Themes: "blue" / "green" / "dark-blue"
 panel = ctk.CTk()
 panel.geometry(Geometry)
 panel.resizable(False, False)
+panel.grid_columnconfigure(0, weight=1)
 panel.title('NoMoreBorder')
 
 if current_settings["start_with_windows"] == True:
     minimize_to_tray()
 
 label = ctk.CTkLabel(panel, text="Display Resolution is " + str(monitors[selected_monitor].width) + 'x' + str(monitors[selected_monitor].height), font=("Helvetica", 20))
-label.pack(pady=20)
+label.grid(row=0, column=0, pady=(20, 10), columnspan=2)
 
-window_list_dropdown = ctk.CTkComboBox(panel, values=["Select Application"], width=400, command=combo_answer)
-window_list_dropdown.pack(padx=20, pady=(0, 10))
+window_panel = ctk.CTkFrame(panel, fg_color="transparent")
+window_panel.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+window_panel.grid_columnconfigure(0, weight=1)
 
-monitor_frame = ctk.CTkFrame(panel, fg_color="transparent")
-monitor_frame.pack(pady=10)
+window_list_dropdown = ctk.CTkComboBox(window_panel, values=["Select Application"], command=combo_answer)
+window_list_dropdown.grid(row=0, column=0, padx=(0, 10), sticky="ew")
 
-monitor_dropdown = ctk.CTkComboBox(monitor_frame, values=list(monitors.keys()), width=350, command=combo_answer_display)
+exact_match_check = ctk.CTkCheckBox(window_panel, text='Exact Match', command=exact_match_event)
+exact_match_check.grid(row=0, column=1, sticky="e")
+
+monitor_dropdown = ctk.CTkComboBox(panel, values=list(monitors.keys()), width=400, command=combo_answer_display)
 monitor_dropdown.set(selected_monitor)
-monitor_dropdown.grid(row=0, column=0, padx=20, pady=(0, 10))
+monitor_dropdown.grid(row=2, column=0, columnspan=2, padx=20, pady=(0, 10))
 
 from tkinter import StringVar
 
@@ -329,13 +346,13 @@ custom_width = StringVar(value=str(monitors[selected_monitor].width))
 custom_height = StringVar(value=str(monitors[selected_monitor].height))
 
 custom_res_frame = ctk.CTkFrame(panel, fg_color="transparent")
-custom_res_frame.pack(pady=5)
+custom_res_frame.grid(pady=5)
 
-ctk.CTkLabel(custom_res_frame, text="X Offset:", anchor="w").grid(row=0, column=0, padx=5)
-ctk.CTkEntry(custom_res_frame, textvariable=custom_x_offset, width=50).grid(row=0, column=1, padx=5)
+ctk.CTkLabel(custom_res_frame, text="X Offset:", anchor="w").grid(row=0, column=0, padx=5, pady=5)
+ctk.CTkEntry(custom_res_frame, textvariable=custom_x_offset, width=50).grid(row=0, column=1, padx=5, pady=5)
 
-ctk.CTkLabel(custom_res_frame, text="Y Offset:", anchor="w").grid(row=0, column=2, padx=5)
-ctk.CTkEntry(custom_res_frame, textvariable=custom_y_offset, width=50).grid(row=0, column=3, padx=5)
+ctk.CTkLabel(custom_res_frame, text="Y Offset:", anchor="w").grid(row=0, column=2, padx=5, pady=5)
+ctk.CTkEntry(custom_res_frame, textvariable=custom_y_offset, width=50).grid(row=0, column=3, padx=5, pady=5)
 
 ctk.CTkLabel(custom_res_frame, text="Width:", anchor="w").grid(row=1, column=0, padx=5)
 ctk.CTkEntry(custom_res_frame, textvariable=custom_width, width=50).grid(row=1, column=1, padx=5)
@@ -344,7 +361,7 @@ ctk.CTkLabel(custom_res_frame, text="Height:", anchor="w").grid(row=1, column=2,
 ctk.CTkEntry(custom_res_frame, textvariable=custom_height, width=50).grid(row=1, column=3, padx=5)
 
 buttons_frame = ctk.CTkFrame(panel, fg_color="transparent")
-buttons_frame.pack(pady=5)
+buttons_frame.grid(pady=5)
 
 submit_button = ctk.CTkButton(buttons_frame, text="Make it Borderless", command=make_borderless, height=35)
 submit_button.grid(row=0, column=0, padx=5)
@@ -353,11 +370,11 @@ undo_button = ctk.CTkButton(buttons_frame, text="Undo Lmao!", command=restore_wi
 undo_button.grid(row=0, column=1, padx=5)
 
 check_box = ctk.CTkCheckBox(panel, text='Start with Windows', command=change_start_with_windows_event)
-check_box.pack(padx=5, pady=(15, 0))
+check_box.grid(padx=5, pady=(15, 0))
 check_box.select() if current_settings["start_with_windows"] else check_box.deselect()
 
 buttons_frame2 = ctk.CTkFrame(panel, fg_color="transparent")
-buttons_frame2.pack(pady=0)
+buttons_frame2.grid()
 
 toggle_mode = ctk.CTkLabel(buttons_frame2, text="Appearance Mode:", anchor="w")
 toggle_mode.grid(row=1, column=0, padx=5, pady=5)
