@@ -25,7 +25,6 @@ DOCUMENTS_FOLDER = os.path.join(get_documents_folder(), "NoMoreBorder")
 SETTINGS_FILE_PATH = os.path.join(DOCUMENTS_FOLDER, "settings.json")
 
 user32 = ctypes.windll.user32
-# user32.SetProcessDPIAware()
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
 Geometry = "400x390+" + str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
@@ -33,7 +32,6 @@ windowList = []
 display_to_title = {}
 saveList = {}
 selected_app = "0"
-exact_match = False
 monitors = {}
 selected_monitor = None
 tray_icon = None
@@ -88,20 +86,17 @@ def refresh_window_list():
     }
 
     for idx, (hwnd, title) in enumerate(windowList):
-        # Detect browser
+        label_parts = []
         lowered = title.lower()
+
         browser_name = None
         for key, name in browser_keywords.items():
             if key in lowered:
                 browser_name = name
                 break
 
-        # Detect Explorer
         class_name = win32gui.GetClassName(hwnd)
         is_explorer = class_name in ["CabinetWClass", "ExploreWClass"]
-
-        # Build label
-        label_parts = []
 
         if is_explorer:
             label_parts.append("Explorer --")
@@ -147,10 +142,6 @@ def save_settings(settings):
     except:
         pass
 
-def exact_match_event():
-    global exact_match_check, exact_match
-    exact_match = exact_match_check.get() == 1
-
 def change_start_with_windows_event():
     global check_box
     settings = load_settings()
@@ -173,7 +164,6 @@ def change_appearance_mode_event(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
     update_theme(new_appearance_mode)
 
-
 def combo_answer(choice):
     global selected_app
     selected_app = display_to_title.get(choice, choice)
@@ -183,9 +173,6 @@ def combo_answer(choice):
         custom_y_offset.set(saveList[choice]["y_offset"])
         custom_width.set(saveList[choice]["width"])
         custom_height.set(saveList[choice]["height"])
-        exact_match = saveList[choice]["exact_match"]
-        if exact_match_check.get() != (1 if exact_match else 0):
-           exact_match_check.toggle()
     else:
         custom_x_offset.set("0")
         custom_y_offset.set("0")
@@ -201,23 +188,21 @@ def combo_answer_display(choice):
         custom_width.set(str(monitors[selected_monitor].width))
         custom_height.set(str(monitors[selected_monitor].height))
 
-def get_window(app_name, exact_match):
+def get_window(app_name):
     global windowList
     hwnd = None
     for win_hwnd, win_title in windowList:
-        if (win_title == app_name if exact_match else win_title.startswith(app_name)):
+        if win_title == app_name:
             hwnd = win_hwnd
             break
 
     return hwnd
 
 def make_borderless(app_name=None, write_needed=True):
-    global selected_app, windowList, saveList, custom_x_offset, custom_y_offset, custom_width, custom_height, selected_monitor, exact_match
+    global selected_app, windowList, saveList, custom_x_offset, custom_y_offset, custom_width, custom_height, selected_monitor
 
     app_name = app_name or selected_app
-    exact = exact_match if write_needed else saveList[app_name].get("exact_match")
-    exact = False if exact is None else exact
-    hwnd = get_window(app_name, exact)
+    hwnd = get_window(app_name)
     if hwnd is None:
         return
 
@@ -251,7 +236,6 @@ def make_borderless(app_name=None, write_needed=True):
             saveList[app_name]["height"] = custom_height.get()
             saveList[app_name]["pre_win_height"] = pre_win_height
             saveList[app_name]["pre_win_width"] = pre_win_width
-            saveList[app_name]["exact_match"] = exact_match
             update_apps(saveList)
         else:
             # saveList[app_name]["monitor"] = selected_monitor
@@ -267,21 +251,24 @@ def make_borderless(app_name=None, write_needed=True):
             pass
 
 def restore_window():
-    global selected_app, windowList, saveList, exact_match
-
+    global selected_app, windowList, saveList
     app_name = selected_app
 
     if app_name != "0":
         pre_win_height = saveList[app_name]["pre_win_height"]
         pre_win_width = saveList[app_name]["pre_win_width"]
 
-        hwnd = get_window(app_name, saveList[app_name].get("exact_match") or exact_match)
+        hwnd = None
+        for win_hwnd, win_title in windowList:
+            if win_title == app_name:
+                hwnd = win_hwnd
+                break
+
         if hwnd is None:
             return
 
         style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX | win32con.WS_THICKFRAME
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
-
         win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, pre_win_width, pre_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
         if app_name in saveList:
@@ -366,8 +353,8 @@ window_panel.grid_columnconfigure(0, weight=1)
 window_list_dropdown = ctk.CTkComboBox(window_panel, values=["Select Application"], command=combo_answer)
 window_list_dropdown.grid(row=0, column=0, padx=(0, 10), sticky="ew")
 
-exact_match_check = ctk.CTkCheckBox(window_panel, text='Exact Match', command=exact_match_event)
-exact_match_check.grid(row=0, column=1, sticky="e")
+# exact_match_check = ctk.CTkCheckBox(window_panel, text='Exact Match', command=exact_match_event)
+# exact_match_check.grid(row=0, column=1, sticky="e")
 
 monitor_dropdown = ctk.CTkComboBox(panel, values=list(monitors.keys()), width=400, command=combo_answer_display)
 monitor_dropdown.set(selected_monitor)
