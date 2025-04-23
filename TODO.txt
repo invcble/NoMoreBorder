@@ -10,3 +10,8 @@ add start with windows - done
 add minimize to tray - done
 custom resolution field - done
 store pre-change dimensions in config - done
+
+add toast that app is still running
+warning about no admin mode
+specific exe path
+increase compatibility

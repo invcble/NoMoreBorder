@@ -8,7 +8,9 @@ import threading
 import winreg as reg
 from PIL import Image, ImageDraw
 from pystray import Icon, MenuItem, Menu
+from tkinter import StringVar
 from threading import Thread
+from win11toast import toast
 from screeninfo import get_monitors
 from ctypes import wintypes, windll
 
@@ -254,22 +256,12 @@ def on_quit(icon, item):
 def on_show(icon, item):
     global tray_icon
     icon.stop()
-
-    panel.geometry(Geometry)
-
-    def do1():
-        panel.attributes("-alpha", 0)
-    panel.after(10, do1())
-
-    panel.deiconify()
-    panel.update_idletasks()
-    panel.update()
-
-    def do2():
-        panel.attributes("-alpha", 1)
-    panel.after(1000, do2())
-
     tray_icon = None
+    
+    panel.after(0, lambda: panel.deiconify())
+    panel.after(100, lambda: panel.attributes("-alpha", 1))
+    panel.after(200, lambda: panel.lift())
+    panel.after(300, lambda: panel.focus_force())
 
 def create_custom_icon():
     image = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
@@ -289,6 +281,10 @@ def minimize_to_tray(event=None):
             MenuItem('Quit', on_quit)
         )
         tray_icon = Icon("NoMoreBorder", create_custom_icon(), "NoMoreBorder", menu)
+
+        toast("NoMoreBorder is still running",
+                            "The app is now minimized to the system tray.")
+
         threading.Thread(target=tray_icon.run, daemon=True).start()
 
 def set_startup(startup):
@@ -337,8 +333,6 @@ exact_match_check.grid(row=0, column=1, sticky="e")
 monitor_dropdown = ctk.CTkComboBox(panel, values=list(monitors.keys()), width=400, command=combo_answer_display)
 monitor_dropdown.set(selected_monitor)
 monitor_dropdown.grid(row=2, column=0, columnspan=2, padx=20, pady=(0, 10))
-
-from tkinter import StringVar
 
 custom_x_offset = StringVar(value="0")
 custom_y_offset = StringVar(value="0")
