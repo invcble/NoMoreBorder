@@ -28,8 +28,9 @@ user32 = ctypes.windll.user32
 # user32.SetProcessDPIAware()
 screen_width = user32.GetSystemMetrics(0)
 screen_height = user32.GetSystemMetrics(1)
-Geometry = "400x380+" + str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
+Geometry = "400x390+" + str(int(screen_width/2) - 200) + '+' + str(int(screen_height/2) - 200)
 windowList = []
+display_to_title = {}
 saveList = {}
 selected_app = "0"
 exact_match = False
@@ -73,9 +74,47 @@ def update_window_list():
         time.sleep(2)
 
 def refresh_window_list():
-    global window_list_dropdown, windowList
-    windowList_strings = [title for hwnd, title in windowList]
-    window_list_dropdown.configure(values=windowList_strings)
+    global window_list_dropdown, windowList, display_to_title
+
+    display_to_title.clear()
+    display_strings = []
+
+    browser_keywords = {
+        "chrome": "Chrome",
+        "firefox": "Firefox",
+        "edge": "Edge",
+        "opera": "Opera",
+        "brave": "Brave"
+    }
+
+    for idx, (hwnd, title) in enumerate(windowList):
+        # Detect browser
+        lowered = title.lower()
+        browser_name = None
+        for key, name in browser_keywords.items():
+            if key in lowered:
+                browser_name = name
+                break
+
+        # Detect Explorer
+        class_name = win32gui.GetClassName(hwnd)
+        is_explorer = class_name in ["CabinetWClass", "ExploreWClass"]
+
+        # Build label
+        label_parts = []
+
+        if is_explorer:
+            label_parts.append("Explorer --")
+        elif browser_name:
+            label_parts.append(f"{browser_name} --")
+
+        label_parts.append(title[:50])
+        pretty = f"{' '.join(label_parts)}{'…' if len(title) > 50 else ''}"
+
+        display_to_title[pretty] = title
+        display_strings.append(pretty)
+
+    window_list_dropdown.configure(values=display_strings)
 
 def load_settings():
     if not os.path.exists(DOCUMENTS_FOLDER):
@@ -137,7 +176,7 @@ def change_appearance_mode_event(new_appearance_mode: str):
 
 def combo_answer(choice):
     global selected_app
-    selected_app = choice
+    selected_app = display_to_title.get(choice, choice)
 
     if choice in saveList:
         custom_x_offset.set(saveList[choice]["x_offset"])
@@ -333,6 +372,13 @@ exact_match_check.grid(row=0, column=1, sticky="e")
 monitor_dropdown = ctk.CTkComboBox(panel, values=list(monitors.keys()), width=400, command=combo_answer_display)
 monitor_dropdown.set(selected_monitor)
 monitor_dropdown.grid(row=2, column=0, columnspan=2, padx=20, pady=(0, 10))
+
+admin_warning_label = ctk.CTkLabel(
+    panel, 
+    text="Re-run as administrator for increased compatibility", 
+    font=("Helvetica", 12),
+)
+admin_warning_label.grid(row=3, column=0, columnspan=1)
 
 custom_x_offset = StringVar(value="0")
 custom_y_offset = StringVar(value="0")
