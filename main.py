@@ -79,6 +79,7 @@ def refresh_window_list():
 
     display_to_title.clear()
     display_strings = []
+    display_priority_strings = []
 
     browser_keywords = {
         "chrome": "Chrome",
@@ -88,7 +89,22 @@ def refresh_window_list():
         "brave": "Brave"
     }
 
+    saved_apps_set = set(saveList.keys())
+
+    # First: Add currently open windows, but ONLY if they are not already saved
     for idx, (hwnd, title) in enumerate(windowList):
+        is_saved_match = False
+
+        # Check if any saved app matches this window title (full or prefix match)
+        for saved_app in saved_apps_set:
+            if (os.path.exists(saved_app) and os.path.basename(saved_app).lower() in title.lower()) or title.startswith(saved_app):
+                is_saved_match = True
+                break
+
+        # skip adding this live window because it's already saved
+        if is_saved_match:
+            continue
+
         label_parts = []
         lowered = title.lower()
 
@@ -112,7 +128,16 @@ def refresh_window_list():
         display_to_title[pretty] = title
         display_strings.append(pretty)
 
-    window_list_dropdown.configure(values=display_strings)
+    # Second: Add saved apps
+    for app in saveList.keys():
+        base_name = os.path.basename(app) if os.path.exists(app) else app
+        display_text = f"[💾 Saved] {base_name}"
+        display_to_title[display_text] = app
+        display_priority_strings.append(display_text)
+
+    display_strings = list(set(display_strings))
+    display_strings.sort()
+    window_list_dropdown.configure(values=display_priority_strings+display_strings)
 
 def load_settings():
     if not os.path.exists(DOCUMENTS_FOLDER):
