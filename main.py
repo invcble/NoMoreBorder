@@ -3,12 +3,15 @@ import ctypes, sys
 import time
 import win32gui
 import win32con
+import win32process
+import win32api
 import json, os
 import threading
 import winreg as reg
 from PIL import Image, ImageDraw
 from pystray import Icon, MenuItem, Menu
 from tkinter import StringVar
+from tkinter import filedialog
 from threading import Thread
 from win11toast import toast
 from screeninfo import get_monitors
@@ -179,6 +182,38 @@ def combo_answer(choice):
         custom_width.set(str(monitors[selected_monitor].width))
         custom_height.set(str(monitors[selected_monitor].height))
 
+def browse_exe_file():
+    global selected_app, display_to_title
+    initial_dir = os.path.expanduser("~")
+    
+    file_path = filedialog.askopenfilename(
+        title="Select Application",
+        filetypes=[("Executable files", "*.exe"), ("All files", "*.*")],
+        initialdir=initial_dir
+    )
+    
+    if file_path:
+        exe_name = os.path.basename(file_path)
+
+        # Store both the file path and the exe name
+        display_text = f"[EXE] {exe_name}"
+        display_to_title[display_text] = file_path
+        selected_app = file_path
+        
+        # Set the dropdown to show the selected exe
+        window_list_dropdown.set(display_text)
+
+        if file_path not in saveList:
+            custom_x_offset.set("0")
+            custom_y_offset.set("0")
+            custom_width.set(str(monitors[selected_monitor].width))
+            custom_height.set(str(monitors[selected_monitor].height))
+        else:
+            custom_x_offset.set(saveList[file_path]["x_offset"])
+            custom_y_offset.set(saveList[file_path]["y_offset"])
+            custom_width.set(saveList[file_path]["width"])
+            custom_height.set(saveList[file_path]["height"])
+
 def combo_answer_display(choice):
     global selected_monitor
     selected_monitor = choice
@@ -191,10 +226,27 @@ def combo_answer_display(choice):
 def get_window(app_name):
     global windowList
     hwnd = None
-    for win_hwnd, win_title in windowList:
-        if win_title == app_name:
-            hwnd = win_hwnd
-            break
+    
+    if app_name and (app_name.endswith('.exe') or '\\' in app_name) and os.path.exists(app_name):
+        exe_name = os.path.basename(app_name).lower()
+
+        # Find windows that match the executable name
+        for win_hwnd, win_title in windowList:
+            try:
+                _, process_id = win32process.GetWindowThreadProcessId(win_hwnd)
+                handle = win32api.OpenProcess(win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ, False, process_id)
+                exe_path = win32process.GetModuleFileNameEx(handle, 0)
+                if os.path.basename(exe_path).lower() == exe_name:
+                    hwnd = win_hwnd
+                    break
+                win32api.CloseHandle(handle)
+            except Exception as e:
+                continue
+    else:
+        for win_hwnd, win_title in windowList:
+            if win_title == app_name:
+                hwnd = win_hwnd
+                break
 
     return hwnd
 
@@ -254,26 +306,35 @@ def restore_window():
     global selected_app, windowList, saveList
     app_name = selected_app
 
-    if app_name != "0":
+    if app_name != "0" and app_name in saveList:
         pre_win_height = saveList[app_name]["pre_win_height"]
         pre_win_width = saveList[app_name]["pre_win_width"]
 
-        hwnd = None
-        for win_hwnd, win_title in windowList:
-            if win_title == app_name:
-                hwnd = win_hwnd
-                break
-
+        # Use the get_window function to find the window
+        hwnd = get_window(app_name)
+        
         if hwnd is None:
+            print(f"Could not find window for {app_name}")
             return
 
-        style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX | win32con.WS_THICKFRAME
-        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
-        win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, pre_win_width, pre_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+        try:
+            style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.WS_MINIMIZEBOX | win32con.WS_MAXIMIZEBOX | win32con.WS_THICKFRAME
+            win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+            win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, pre_win_width, pre_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-        if app_name in saveList:
             saveList.pop(app_name)
             update_apps(saveList)
+
+            custom_x_offset.set("0")
+            custom_y_offset.set("0")
+            custom_width.set(str(monitors[selected_monitor].width))
+            custom_height.set(str(monitors[selected_monitor].height))
+            
+            print(f"Successfully restored window for {app_name}")
+        except Exception as e:
+            print(f"Error restoring window: {e}")
+    else:
+        print(f"Cannot restore window: app_name={app_name} in saveList={app_name in saveList}")
 
 def on_quit(icon, item):
     icon.stop()
@@ -282,12 +343,22 @@ def on_quit(icon, item):
 def on_show(icon, item):
     global tray_icon
     icon.stop()
+
+    panel.geometry(Geometry)
+
+    def do1():
+        panel.attributes("-alpha", 0)
+    panel.after(10, do1())
+
+    panel.deiconify()
+    panel.update_idletasks()
+    panel.update()
+
+    def do2():
+        panel.attributes("-alpha", 1)
+    panel.after(1000, do2())
+
     tray_icon = None
-    
-    panel.after(0, lambda: panel.deiconify())
-    panel.after(100, lambda: panel.attributes("-alpha", 1))
-    panel.after(200, lambda: panel.lift())
-    panel.after(300, lambda: panel.focus_force())
 
 def create_custom_icon():
     image = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
@@ -350,11 +421,11 @@ window_panel = ctk.CTkFrame(panel, fg_color="transparent")
 window_panel.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
 window_panel.grid_columnconfigure(0, weight=1)
 
-window_list_dropdown = ctk.CTkComboBox(window_panel, values=["Select Application"], command=combo_answer)
-window_list_dropdown.grid(row=0, column=0, padx=(0, 10), sticky="ew")
+window_list_dropdown = ctk.CTkComboBox(window_panel, values=["Select Application"], command=combo_answer, width=320)
+window_list_dropdown.grid(row=0, column=0, padx=(0, 5), sticky="ew")
 
-# exact_match_check = ctk.CTkCheckBox(window_panel, text='Exact Match', command=exact_match_event)
-# exact_match_check.grid(row=0, column=1, sticky="e")
+browse_button = ctk.CTkButton(window_panel, text="📂", command=browse_exe_file, width=30)
+browse_button.grid(row=0, column=1, padx=(0, 0), sticky="e")
 
 monitor_dropdown = ctk.CTkComboBox(panel, values=list(monitors.keys()), width=400, command=combo_answer_display)
 monitor_dropdown.set(selected_monitor)
