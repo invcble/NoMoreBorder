@@ -14,6 +14,7 @@ store pre-change dimensions in config - done
 add toast that app is still running - done
 warning about no admin mode - done
 specific exe path - done
+add specific exe to list, so undo becomes easier - done
 
-add specific exe to list, so undo becomes easier
+improve logic when app is minimized
 increase compatibility
