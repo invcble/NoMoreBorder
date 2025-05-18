@@ -1,0 +1,45 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+    PYTHON_VERSION: '3.12'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --noconsole --icon=icon.ico --name=NoMoreBorder main.py
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          artifacts: dist/NoMoreBorder.exe
+          name: ${{ github.ref_name }}
+          generateReleaseNotes: true
+          body: |
+            Made with Pyinstaller. Python ${{ env.PYTHON_VERSION }}.
+
+            **NOTE**
+            Run it as it is. If having issues run as administrator.
+            You can use this one or compile your own. Details on how to do that are given in the [README](https://github.com/invcble/NoMoreBorder?tab=readme-ov-file#or-option-2-run-as-a-script--compile-your-own-exe).
