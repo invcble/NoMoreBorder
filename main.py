@@ -49,7 +49,11 @@ for index, m in enumerate(get_monitors()):
 
 def enum_window_proc(hwnd, resultList):
     if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
-        resultList.append((hwnd, win32gui.GetWindowText(hwnd)))
+        try:
+            exePath = win32process.GetModuleFileNameEx(win32api.OpenProcess(win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ, False, win32process.GetWindowThreadProcessId(hwnd)[1]), 0)
+        except:
+            exePath = None
+        resultList.append((hwnd, win32gui.GetWindowText(hwnd), exePath))
 
 def update_window_list():
     global windowList, saveList, selected_app, selected_monitor
@@ -58,10 +62,9 @@ def update_window_list():
         temp = []
         win32gui.EnumWindows(enum_window_proc, temp)
 
-        temp_titles = [title for hwnd, title in temp]
         for save_item in saveList:
-            for temp_title in temp_titles:
-                if temp_title.startswith(save_item):
+            for _, temp_title, temp_path in temp:
+                if temp_title.startswith(save_item) or (temp_path is not None and os.path.normpath(temp_path) == os.path.normpath(save_item)):
                     # Use saved settings if they exist
                     make_borderless(save_item, write_needed=False)
 
@@ -92,7 +95,7 @@ def refresh_window_list():
     saved_apps_set = set(saveList.keys())
 
     # First: Add currently open windows, but ONLY if they are not already saved
-    for idx, (hwnd, title) in enumerate(windowList):
+    for idx, (hwnd, title, exePath) in enumerate(windowList):
         is_saved_match = False
 
         # Check if any saved app matches this window title (full or prefix match)
@@ -256,19 +259,16 @@ def get_window(app_name):
         exe_name = os.path.basename(app_name).lower()
 
         # Find windows that match the executable name
-        for win_hwnd, win_title in windowList:
+        for win_hwnd, win_title, win_exe in windowList:
             try:
-                _, process_id = win32process.GetWindowThreadProcessId(win_hwnd)
-                handle = win32api.OpenProcess(win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ, False, process_id)
-                exe_path = win32process.GetModuleFileNameEx(handle, 0)
-                if os.path.basename(exe_path).lower() == exe_name:
+                if os.path.basename(win_exe).lower() == exe_name:
                     hwnd = win_hwnd
                     break
                 win32api.CloseHandle(handle)
             except Exception as e:
                 continue
     else:
-        for win_hwnd, win_title in windowList:
+        for win_hwnd, win_title, win_exe in windowList:
             if win_title == app_name:
                 hwnd = win_hwnd
                 break
