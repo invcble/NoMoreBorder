@@ -64,14 +64,14 @@ python main.py
 To compile, simply put this command in your terminal or command prompt:
 
 ```bash
-pyinstaller --onefile --noconsole --icon=icon.ico main.py
+pyinstaller NoMoreBorder.spec
 ```
 
 You will find the exe in dist folder in parent directory.
 
 ## Configuration
 
-NoMoreBorder automatically saves your settings to a `settings.json` file located in the Users/user/Documents/NoMoreBorder/ directory. This file includes the list of applications set to borderless mode and the selected theme, ensuring your preferences are maintained across sessions.
+NoMoreBorder automatically saves your settings to a `settings.json` file located in the `Documents/NoMoreBorder` directory. This file includes the list of applications set to borderless mode and the selected theme, ensuring your preferences are maintained across sessions.
 
 ## Contributions
 
