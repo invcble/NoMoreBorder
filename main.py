@@ -264,7 +264,7 @@ def get_window(app_name):
                 if os.path.basename(win_exe).lower() == exe_name:
                     hwnd = win_hwnd
                     break
-                win32api.CloseHandle(handle)
+                # win32api.CloseHandle(handle)
             except Exception as e:
                 continue
     else:
