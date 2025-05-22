@@ -31,7 +31,7 @@ jobs:
         shell: powershell
         run: |
           $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin"
-          echo "##[add-path]$mingwPath"
+          echo "$mingwPath" >> $env:GITHUB_PATH
 
       - name: Compile PyInstaller bootloader
         run: |
