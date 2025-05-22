@@ -33,6 +33,10 @@ jobs:
           $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin"
           echo "$mingwPath" >> $env:GITHUB_PATH
 
+      - name: Download PyInstaller source
+        run: |
+          git clone https://github.com/pyinstaller/pyinstaller.git
+
       - name: Compile PyInstaller bootloader
         run: |
           cd PyInstaller/bootloader
