@@ -2,7 +2,7 @@
 
 NoMoreBorder is a utility designed to enhance your multitasking experience by enabling any windowed application to run in a fullscreen borderless mode without changing the screen resolution. This software is perfect for certain scenarios where applications don't have a dedicated full-screen borderless mode and running it fullscreen would mess up with dual screen behaviours.
 
-> ⭐ If you like NoMoreBorder, leaving a star would mean a lot! It helps support the project and keeps it growing. Thank you! ⭐
+> ⭐ If you like NoMoreBorder, please leave a star. It supports the project and keeps it growing. Thank you! ⭐
 
 ## Screenshots
 
@@ -10,7 +10,7 @@ NoMoreBorder is a utility designed to enhance your multitasking experience by en
 
 Here's how NoMoreBorder user-friendly interface looks in action, courtesy of [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter).
 
-![UI](https://github.com/invcble/NoMoreBorder/blob/e769aa3f8fe05a1d76d47f29bc3367636d7eeb11/pictures/UI.png)
+![UI](https://github.com/invcble/NoMoreBorder/blob/7921f41e77eddecba9ee734cbc386d668ec4dafd/pictures/UI.png)
 
 ### Before and After
 
@@ -68,6 +68,21 @@ pyinstaller NoMoreBorder.spec
 ```
 
 You will find the exe in dist folder in parent directory.
+
+
+## ⚠️ Antivirus False Positives Notice
+
+Some users have reported that certain versions of **NoMoreBorder** are being flagged by antivirus software (such as Windows Defender, Norton, and Bitdefender) as potential malware. These are **false positives**, primarily due to how compiled Python applications behave and the fact that the tool interacts with system-level window management (e.g., modifying window states, adding to startup registry).
+
+To ensure full transparency:
+
+* The app is **open source** – you’re encouraged to review the code and compile it yourself from `main.py` if you'd like complete peace of mind.
+* We've transitioned to using **GitHub Actions** to compile releases in a clean and controlled environment, reducing the risk of local environment contamination.
+* Recent builds have been tested with **VirusTotal** and show significantly fewer detections after refining the build process (e.g., now building our own pyinstaller bootloader while compiling binary).
+* We're actively submitting these false positives to antivirus vendors for whitelisting.
+
+We appreciate your patience and understanding. False positives are unfortunately common with Python-based tools that are compiled to `.exe` files.
+
 
 ## Configuration
 
