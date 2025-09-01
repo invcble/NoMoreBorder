@@ -63,10 +63,15 @@ def update_window_list():
         win32gui.EnumWindows(enum_window_proc, temp)
 
         for save_item in saveList:
-            for _, temp_title, temp_path in temp:
-                if temp_title.startswith(save_item) or (temp_path is not None and os.path.normpath(temp_path) == os.path.normpath(save_item)):
-                    # Use saved settings if they exist
-                    make_borderless(save_item, write_needed=False)
+            # All saved items should now be in title|||path format
+            if "|||" in save_item:
+                saved_title, saved_exe = save_item.split("|||", 1)
+                for hwnd, temp_title, temp_path in temp:
+                    if temp_path and os.path.normpath(temp_path) == os.path.normpath(saved_exe):
+                        # Match both path AND title for precise identification
+                        if temp_title == saved_title or temp_title.startswith(saved_title.split(' - ')[0]):
+                            make_borderless(save_item, write_needed=False)
+                            break  # Found the specific window, move to next saved item
 
         if windowList != temp:
             try:
@@ -75,72 +80,87 @@ def update_window_list():
                 exit()
 
         windowList = temp
-        time.sleep(2)
+        time.sleep(5)
 
 def refresh_window_list():
     global window_list_dropdown, windowList, display_to_title
 
     display_to_title.clear()
-    display_strings = []
-    display_priority_strings = []
-
-    browser_keywords = {
-        "chrome": "Chrome",
-        "firefox": "Firefox",
-        "edge": "Edge",
-        "opera": "Opera",
-        "brave": "Brave"
-    }
+    saved_items = []
+    live_items = []
 
     saved_apps_set = set(saveList.keys())
 
-    # First: Add currently open windows, but ONLY if they are not already saved
+    # First: Process saved apps (all should be in title|||path format now)
+    for app in sorted(saveList.keys()):
+        if "|||" in app:
+            # Combined identifier format (title|||path)
+            saved_title, saved_exe = app.split("|||", 1)
+            exe_name = os.path.basename(saved_exe)
+            # Remove .exe extension for cleaner display
+            if exe_name.lower().endswith('.exe'):
+                exe_name = exe_name[:-4]
+            
+            # Check if window is currently running
+            is_running = False
+            for hwnd, title, exePath in windowList:
+                if exePath and os.path.normpath(exePath) == os.path.normpath(saved_exe):
+                    if title == saved_title or title.startswith(saved_title.split(' - ')[0]):
+                        is_running = True
+                        break
+            
+            title_truncated = saved_title[:30] + ('…' if len(saved_title) > 30 else '')
+            if is_running:
+                display_text = f"✅ {exe_name} | {title_truncated}"
+            else:
+                display_text = f"✅ {exe_name} | {title_truncated} (not running)"
+            
+            display_to_title[display_text] = app
+            saved_items.append(display_text)
+
+    # Second: Process currently open windows (not saved)
     for idx, (hwnd, title, exePath) in enumerate(windowList):
         is_saved_match = False
 
-        # Check if any saved app matches this window title (full or prefix match)
+        # Check if any saved app matches this window
         for saved_app in saved_apps_set:
-            if (os.path.exists(saved_app) and os.path.basename(saved_app).lower() in title.lower()) or title.startswith(saved_app):
-                is_saved_match = True
-                break
+            # All saved apps should be in title|||path format now
+            if "|||" in saved_app:
+                saved_title, saved_exe = saved_app.split("|||", 1)
+                if exePath and os.path.normpath(exePath) == os.path.normpath(saved_exe):
+                    if title == saved_title or title.startswith(saved_title.split(' - ')[0]):
+                        is_saved_match = True
+                        break
 
-        # skip adding this live window because it's already saved
+        # Skip if already saved
         if is_saved_match:
             continue
 
-        label_parts = []
-        lowered = title.lower()
+        # Format: exe_name | window_title
+        if exePath:
+            exe_name = os.path.basename(exePath)
+            # Remove .exe extension for cleaner display
+            if exe_name.lower().endswith('.exe'):
+                exe_name = exe_name[:-4]
+            title_truncated = title[:40] + ('…' if len(title) > 40 else '')
+            display_text = f"{exe_name} | {title_truncated}"
+            # Use combined identifier for precise window identification
+            identifier = f"{title}|||{exePath}"
+        else:
+            # No exe path available, just use title
+            display_text = title[:60] + ('…' if len(title) > 60 else '')
+            identifier = title
 
-        browser_name = None
-        for key, name in browser_keywords.items():
-            if key in lowered:
-                browser_name = name
-                break
+        display_to_title[display_text] = identifier
+        live_items.append(display_text)
 
-        class_name = win32gui.GetClassName(hwnd)
-        is_explorer = class_name in ["CabinetWClass", "ExploreWClass"]
-
-        if is_explorer:
-            label_parts.append("Explorer --")
-        elif browser_name:
-            label_parts.append(f"{browser_name} --")
-
-        label_parts.append(title[:50])
-        pretty = f"{' '.join(label_parts)}{'…' if len(title) > 50 else ''}"
-
-        display_to_title[pretty] = title
-        display_strings.append(pretty)
-
-    # Second: Add saved apps
-    for app in saveList.keys():
-        base_name = os.path.basename(app) if os.path.exists(app) else app
-        display_text = f"[💾 Saved] {base_name}"
-        display_to_title[display_text] = app
-        display_priority_strings.append(display_text)
-
-    display_strings = list(set(display_strings))
-    display_strings.sort()
-    window_list_dropdown.configure(values=display_priority_strings+display_strings)
+    # Sort live items alphabetically
+    live_items.sort()
+    
+    # Combine: saved apps first, then live apps
+    all_items = saved_items + live_items
+    
+    window_list_dropdown.configure(values=all_items)
 
 def load_settings():
     if not os.path.exists(DOCUMENTS_FOLDER):
@@ -158,6 +178,19 @@ def load_settings():
                     "width": "1920",
                     "height": "1080"
                 } for app in settings["apps"]}
+                save_settings(settings)
+            
+            # Remove old format configs - only keep title|||path format
+            cleaned_apps = {}
+            for app_key, app_settings in settings["apps"].items():
+                # Only keep configs in the new format
+                if "|||" in app_key:
+                    cleaned_apps[app_key] = app_settings
+            
+            # If any old configs were removed, save the cleaned settings
+            if len(cleaned_apps) != len(settings["apps"]):
+                print(f"Removed {len(settings['apps']) - len(cleaned_apps)} old format configs")
+                settings["apps"] = cleaned_apps
                 save_settings(settings)
             if "start_with_windows" not in settings:
                 settings["start_with_windows"] = False
@@ -191,12 +224,19 @@ def update_apps(new_apps):
     settings["apps"] = new_apps
     save_settings(settings)
 
+
 def change_appearance_mode_event(new_appearance_mode: str):
     ctk.set_appearance_mode(new_appearance_mode)
     update_theme(new_appearance_mode)
 
 def combo_answer(choice):
     global selected_app
+    
+    # Ignore separator lines
+    if "─" in choice:
+        return
+    
+    # Get the actual identifier (exe path or window title) from the display mapping
     selected_app = display_to_title.get(choice, choice)
 
     if choice in saveList:
@@ -222,11 +262,14 @@ def browse_exe_file():
     
     if file_path:
         exe_name = os.path.basename(file_path)
+        # Remove .exe extension for cleaner display
+        if exe_name.lower().endswith('.exe'):
+            exe_name = exe_name[:-4]
 
-        # Store both the file path and the exe name
-        display_text = f"[EXE] {exe_name}"
+        # Store the file path temporarily - will be converted to title|||path when window is found
+        display_text = f"📁 {exe_name} (browsed)"
         display_to_title[display_text] = file_path
-        selected_app = file_path
+        selected_app = file_path  # Will be updated to title|||path in make_borderless
         
         # Set the dropdown to show the selected exe
         window_list_dropdown.set(display_text)
@@ -255,18 +298,25 @@ def get_window(app_name):
     global windowList
     hwnd = None
     
-    if app_name and (app_name.endswith('.exe') or '\\' in app_name) and os.path.exists(app_name):
-        exe_name = os.path.basename(app_name).lower()
-
-        # Find windows that match the executable name
+    # Check if it's a combined identifier (title|||path)
+    if app_name and "|||" in app_name:
+        saved_title, saved_exe = app_name.split("|||", 1)
         for win_hwnd, win_title, win_exe in windowList:
-            try:
-                if os.path.basename(win_exe).lower() == exe_name:
+            # Match BOTH title and exe path for precise identification
+            if win_exe and os.path.normpath(win_exe) == os.path.normpath(saved_exe):
+                # Exact title match or partial match for dynamic titles
+                if win_title == saved_title or win_title.startswith(saved_title.split(' - ')[0]):
                     hwnd = win_hwnd
                     break
-                # win32api.CloseHandle(handle)
-            except Exception as e:
-                continue
+    # Handle case where just exe path is passed (from browse_exe_file)
+    elif app_name and os.path.exists(app_name):
+        # This is only for finding the first window when browsing for exe
+        # It will be converted to title|||path format when saved
+        for win_hwnd, win_title, win_exe in windowList:
+            if win_exe and os.path.normpath(win_exe) == os.path.normpath(app_name):
+                hwnd = win_hwnd
+                break
+    # Fallback: match by window title only (when no exe path available)
     else:
         for win_hwnd, win_title, win_exe in windowList:
             if win_title == app_name:
@@ -275,6 +325,34 @@ def get_window(app_name):
 
     return hwnd
 
+def make_borderless_enhanced(hwnd):
+    """Enhanced borderless function with better compatibility for modern Windows"""
+    try:
+        # Get current styles
+        style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE)
+        ex_style = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
+        
+        # Remove all window decorations more aggressively
+        style &= ~(win32con.WS_CAPTION | win32con.WS_THICKFRAME | 
+                   win32con.WS_MINIMIZE | win32con.WS_MAXIMIZE | win32con.WS_SYSMENU)
+        
+        # Remove extended style decorations that can cause borders
+        ex_style &= ~(win32con.WS_EX_DLGMODALFRAME | win32con.WS_EX_WINDOWEDGE | 
+                      win32con.WS_EX_CLIENTEDGE | win32con.WS_EX_STATICEDGE)
+        
+        # Apply the new styles
+        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+        win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, ex_style)
+        
+        # Force window to refresh its frame
+        win32gui.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 
+                             win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | 
+                             win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
+        return True
+    except Exception as e:
+        print(f"Enhanced borderless failed: {e}")
+        return False
+
 def make_borderless(app_name=None, write_needed=True):
     global selected_app, windowList, saveList, custom_x_offset, custom_y_offset, custom_width, custom_height, selected_monitor
 
@@ -282,6 +360,18 @@ def make_borderless(app_name=None, write_needed=True):
     hwnd = get_window(app_name)
     if hwnd is None:
         return
+    
+    # Get the exe path and title for this window if we don't have it yet
+    if write_needed and not ("|||" in app_name and os.path.exists(app_name.split("|||")[1])):
+        for win_hwnd, win_title, win_exe in windowList:
+            if win_hwnd == hwnd:
+                # Always use combined title + exe as identifier for unique identification
+                if win_exe:
+                    app_name = f"{win_title}|||{win_exe}"  # Combined identifier for ALL apps
+                else:
+                    # Fallback to just title if no exe path available
+                    app_name = win_title
+                break
 
     try:
         if write_needed:
@@ -289,9 +379,13 @@ def make_borderless(app_name=None, write_needed=True):
             pre_win_height = bottom - top
             pre_win_width = right - left
 
-        style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
-        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+        # Try enhanced borderless first for better compatibility
+        if not make_borderless_enhanced(hwnd):
+            # Fallback to original method if enhanced fails
+            style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~(win32con.WS_CAPTION) & ~(win32con.WS_THICKFRAME)
+            win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
 
+        # Now position and resize the window
         if write_needed:
             target_resolution = (int(custom_width.get()), int(custom_height.get()))
             location_x = monitors[selected_monitor].x + int(custom_x_offset.get())
@@ -330,16 +424,23 @@ def make_borderless(app_name=None, write_needed=True):
 def restore_window():
     global selected_app, windowList, saveList
     app_name = selected_app
-
-    if app_name != "0" and app_name in saveList:
-        pre_win_height = saveList[app_name]["pre_win_height"]
-        pre_win_width = saveList[app_name]["pre_win_width"]
+    
+    # Find the actual saved key (all should be in title|||path format now)
+    saved_key = None
+    for key in saveList.keys():
+        if key == app_name:
+            saved_key = key
+            break
+    
+    if saved_key and saved_key in saveList:
+        pre_win_height = saveList[saved_key]["pre_win_height"]
+        pre_win_width = saveList[saved_key]["pre_win_width"]
 
         # Use the get_window function to find the window
-        hwnd = get_window(app_name)
+        hwnd = get_window(saved_key)
         
         if hwnd is None:
-            print(f"Could not find window for {app_name}")
+            print(f"Could not find window for {saved_key}")
             return
 
         try:
@@ -347,7 +448,7 @@ def restore_window():
             win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
             win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 350, 200, pre_win_width, pre_win_height, win32con.SWP_NOZORDER | win32con.SWP_FRAMECHANGED)
 
-            saveList.pop(app_name)
+            saveList.pop(saved_key)
             update_apps(saveList)
 
             custom_x_offset.set("0")
@@ -355,11 +456,11 @@ def restore_window():
             custom_width.set(str(monitors[selected_monitor].width))
             custom_height.set(str(monitors[selected_monitor].height))
             
-            print(f"Successfully restored window for {app_name}")
+            print(f"Successfully restored window for {saved_key}")
         except Exception as e:
             print(f"Error restoring window: {e}")
     else:
-        print(f"Cannot restore window: app_name={app_name} in saveList={app_name in saveList}")
+        print(f"Cannot restore window: app_name={app_name} saved_key={saved_key} in saveList={saved_key in saveList if saved_key else False}")
 
 def on_quit(icon, item):
     icon.stop()
